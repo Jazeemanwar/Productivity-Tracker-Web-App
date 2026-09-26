@@ -1,0 +1,1180 @@
+/* TimeLens — The Daybook Stylesheet */
+
+/* ==========================================================================
+   1. Design Tokens & Variables (from design.md)
+   ========================================================================== */
+:root {
+  --paper: #EDE7D9;
+  --surface: #F7F3E8;
+  --ink: #262220;
+  --ink-muted: #6B6259;
+  --teal: #2F5D62;
+  --teal-hover: #264b4f;
+  --flag-red: #B14A3A;
+  --flag-red-light: rgba(177, 74, 58, 0.12);
+
+  /* Category Palette (Colored pencil style) */
+  --cat-sleep: #5B6B8C;
+  --cat-study: #5C7A5E;
+  --cat-screens: #C97B4A;
+  --cat-exercise: #C79A3E;
+  --cat-social: #7C5C7A;
+  --cat-other: #9C9186;
+
+  /* Typography */
+  --font-display: 'IBM Plex Sans Condensed', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* 8px Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Hairlines & Borders */
+  --hairline: 1px solid rgba(107, 98, 89, 0.22);
+  --hairline-subtle: 1px solid rgba(107, 98, 89, 0.12);
+  --hairline-active: 1.5px solid var(--teal);
+
+  /* Radius — deliberate minimal tactile edges */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}
+
+/* ==========================================================================
+   2. Reset & Base Typography
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  background-color: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabular numerals for all durations, stats & hours */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   3. Daybook Container & Masthead
+   ========================================================================== */
+.daybook-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .daybook-container {
+    padding: var(--space-5) var(--space-6);
+  }
+}
+
+/* Header Masthead */
+.daybook-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-4);
+  border-bottom: var(--hairline);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.masthead-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.logo-mark {
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-sm);
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.brand-tagline {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.01em;
+  margin-top: 1px;
+}
+
+.masthead-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.date-badge {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--hairline);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+/* ==========================================================================
+   4. Buttons & Tactile Micro-Interactions
+   ========================================================================== */
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: transform 80ms ease, background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  user-select: none;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.button-primary {
+  background: var(--teal);
+  color: var(--paper);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--teal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.button-primary:hover {
+  background: var(--teal-hover);
+}
+
+.btn-shortcut {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.button-subtle {
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: var(--hairline);
+  border-radius: var(--radius-sm);
+}
+
+.button-subtle:hover {
+  background: #ede6d8;
+  border-color: var(--ink-muted);
+}
+
+.icon-button {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+
+.icon-button:hover {
+  background: #ede6d8;
+  color: var(--teal);
+}
+
+.button-demo {
+  background: var(--surface);
+  color: var(--teal);
+  border: 1px solid var(--teal);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.button-demo:hover {
+  background: var(--teal);
+  color: var(--paper);
+}
+
+/* ==========================================================================
+   5. Daybook Grid Layout
+   ========================================================================== */
+.daybook-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .daybook-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .logger-column {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Desktop: 3 distinct Daybook columns */
+@media (min-width: 1024px) {
+  .daybook-grid {
+    grid-template-columns: 310px 1fr 340px;
+    gap: var(--space-5);
+    align-items: start;
+  }
+}
+
+.journal-column {
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .journal-column {
+    padding: var(--space-5);
+  }
+}
+
+/* Section Rule Headers */
+.section-rule-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: var(--space-2);
+  border-bottom: var(--hairline);
+  gap: var(--space-2);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.section-sub-rule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: var(--hairline-subtle);
+  margin-bottom: var(--space-2);
+}
+
+.sub-rule-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-transform: none;
+}
+
+.sub-rule-hint {
+  font-size: 0.6875rem;
+  color: var(--ink-muted);
+  opacity: 0.8;
+}
+
+.logged-counter {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--teal);
+  background: rgba(47, 93, 98, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+}
+
+/* ==========================================================================
+   6. Form & Ruled Underline Inputs (The Daybook Style)
+   ========================================================================== */
+.logger-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: var(--space-3);
+}
+
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.optional-tag {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+/* Ruled Underline Inputs */
+.ruled-input,
+.ruled-select {
+  border: none;
+  border-bottom: 1.5px solid var(--ink-muted);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  padding: 6px 2px;
+  border-radius: 0;
+  width: 100%;
+  transition: border-color 150ms ease, background-color 150ms ease;
+  outline: none;
+}
+
+.ruled-input::placeholder {
+  color: rgba(107, 98, 89, 0.5);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.ruled-input:focus,
+.ruled-select:focus {
+  border-bottom: 2px solid var(--teal);
+  background-color: rgba(47, 93, 98, 0.03);
+}
+
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.category-indicator-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.category-indicator-dot.small {
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+}
+
+.select-wrapper .category-indicator-dot {
+  position: absolute;
+  left: 2px;
+  pointer-events: none;
+}
+
+.select-wrapper select {
+  padding-left: 20px;
+}
+
+/* ==========================================================================
+   7. Quick Add Presets
+   ========================================================================== */
+.quick-add-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.preset-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-btn {
+  background: var(--surface);
+  border: var(--hairline);
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.preset-btn:hover {
+  background: #f1ebd9;
+  border-color: var(--ink-muted);
+}
+
+.preset-btn:active {
+  background: var(--teal);
+}
+
+.preset-btn:active .preset-title,
+.preset-btn:active .preset-meta {
+  color: var(--paper);
+}
+
+.preset-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.preset-meta {
+  font-size: 0.6875rem;
+  color: var(--ink-muted);
+}
+
+/* ==========================================================================
+   8. Logged Entries List
+   ========================================================================== */
+.logged-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+/* Clean paper scrollbar */
+.entries-list::-webkit-scrollbar {
+  width: 4px;
+}
+.entries-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.entries-list::-webkit-scrollbar-thumb {
+  background: rgba(107, 98, 89, 0.3);
+  border-radius: 2px;
+}
+
+.entry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: rgba(237, 231, 217, 0.4);
+  border: var(--hairline-subtle);
+  border-radius: var(--radius-xs);
+  font-size: 0.8125rem;
+}
+
+.entry-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.entry-name {
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-note {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.entry-duration {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.btn-remove-entry {
+  color: var(--ink-muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.btn-remove-entry:hover {
+  color: var(--flag-red);
+  background: var(--flag-red-light);
+}
+
+.empty-entries-message {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  font-style: italic;
+  padding: 12px 4px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   9. Column 2: Day Dial (Hero Visual)
+   ========================================================================== */
+.dial-column {
+  align-items: center;
+  text-align: center;
+}
+
+.dial-header {
+  width: 100%;
+}
+
+.dial-subtext {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: 4px;
+  text-align: left;
+}
+
+.view-toggle {
+  display: inline-flex;
+  background: var(--paper);
+  border: var(--hairline);
+  border-radius: var(--radius-xs);
+  padding: 2px;
+}
+
+.toggle-btn {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 2px;
+  color: var(--ink-muted);
+}
+
+.toggle-btn.active {
+  background: var(--surface);
+  color: var(--teal);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* Dial Stage & SVG */
+.dial-stage-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 340px;
+}
+
+.day-dial-container,
+.chart-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+}
+
+.day-dial-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.04));
+}
+
+.dial-track-outer {
+  fill: none;
+  stroke: rgba(107, 98, 89, 0.2);
+  stroke-width: 1;
+}
+
+.dial-track-inner {
+  fill: var(--surface);
+  stroke: rgba(107, 98, 89, 0.2);
+  stroke-width: 1;
+}
+
+.dial-tick-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--ink-muted);
+}
+
+/* Dial Segments */
+.dial-segment {
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease, stroke-width 120ms ease;
+  transform-origin: 170px 170px;
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+
+.dial-segment:hover {
+  stroke: var(--ink);
+  stroke-width: 2;
+  opacity: 0.9;
+}
+
+/* Needle (Current Hour Hand) */
+.dial-needle {
+  stroke: var(--teal);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: 170px 170px;
+}
+
+.dial-needle-pivot {
+  fill: var(--teal);
+}
+
+.dial-needle-tip {
+  fill: var(--teal);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: 170px 170px;
+}
+
+/* Center Hero Stat */
+.dial-center-hero,
+.chart-center-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 170px;
+  text-align: center;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-stat {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 2.25rem;
+  line-height: 1.05;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.hero-caption {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+.hero-subcaption {
+  font-size: 0.6875rem;
+  color: var(--teal);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Dial Segment Hover Tooltip */
+.dial-tooltip {
+  position: absolute;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 5px 9px;
+  border-radius: var(--radius-xs);
+  pointer-events: none;
+  z-index: 10;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transform: translate(-50%, -120%);
+}
+
+/* Category Legend & Swatches */
+.category-legend {
+  width: 100%;
+  border-top: var(--hairline);
+  padding-top: var(--space-3);
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 12px;
+  text-align: left;
+}
+
+@media (min-width: 480px) {
+  .legend-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.15);
+  position: relative;
+}
+
+/* Pattern Overlays on Swatches */
+.pat-sleep-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.7) 1.2px, transparent 1.2px);
+  background-size: 4px 4px;
+}
+
+.pat-study-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.7) 2px, rgba(255,255,255,0.7) 4px);
+}
+
+.pat-screens-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.7) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+.pat-exercise-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(255,255,255,0.7) 2px, rgba(255,255,255,0.7) 4px);
+}
+
+.pat-social-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px dotted rgba(255,255,255,0.8);
+}
+
+.pat-other-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.7) 0.8px, transparent 0.8px);
+  background-size: 3px 3px;
+}
+
+.legend-label {
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legend-time {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-size: 0.6875rem;
+}
+
+/* ==========================================================================
+   10. Column 3: The Daily Insight & Actual vs. Ideal
+   ========================================================================== */
+.margin-note-tag {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Insight Card (Margin-note styling) */
+.insight-card {
+  background: var(--surface);
+  border: var(--hairline);
+  border-left: 3.5px solid var(--teal);
+  padding: 16px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: opacity 150ms ease, border-left-color 200ms ease;
+}
+
+.insight-card.flagged {
+  border-left-color: var(--flag-red);
+  background: #fcf6f4;
+}
+
+.insight-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.insight-icon {
+  display: flex;
+  align-items: center;
+  color: var(--teal);
+}
+
+.insight-card.flagged .insight-icon {
+  color: var(--flag-red);
+}
+
+.insight-type {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--teal);
+}
+
+.insight-card.flagged .insight-type {
+  color: var(--flag-red);
+}
+
+.insight-body {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.insight-nudge {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: var(--hairline-subtle);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+/* Actual vs. Ideal Bars */
+.actual-vs-ideal-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.balance-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bar-title-group {
+  display: flex;
+  align-items: center;
+}
+
+.bar-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.bar-stats {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.warning-flag-pill {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--flag-red);
+  background: var(--flag-red-light);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  margin-left: 6px;
+}
+
+/* Flat Rectangular Bar (No rounded SaaS pill) */
+.bar-track {
+  position: relative;
+  height: 8px;
+  background: var(--paper);
+  border: var(--hairline);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.bar-ideal-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--ink);
+  z-index: 2;
+  opacity: 0.75;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 400ms cubic-bezier(0.1, 0.9, 0.2, 1), background-color 200ms ease;
+}
+
+.bar-fill.over-budget {
+  background-color: var(--flag-red) !important;
+}
+
+/* Pitch Helper Box */
+.pitch-helper-box {
+  background: rgba(237, 231, 217, 0.4);
+  border: var(--hairline);
+  padding: var(--space-3);
+  border-radius: var(--radius-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pitch-helper-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--teal);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pitch-text {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  line-height: 1.35;
+}
+
+/* ==========================================================================
+   11. Footer
+   ========================================================================== */
+.daybook-footer {
+  margin-top: auto;
+  padding: var(--space-4) 0;
+  border-top: var(--hairline);
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.footer-separator {
+  opacity: 0.4;
+}
+
+/* ==========================================================================
+   12. Settings / Ideal Targets Modal
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(38, 34, 32, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+  backdrop-filter: blur(2px);
+}
+
+.modal-sheet {
+  background: var(--surface);
+  border: var(--hairline);
+  max-width: 440px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.modal-intro {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+.ideals-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: var(--space-2);
+}
+
+.ideal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.ideal-row label {
+  flex: 1;
+  font-weight: 500;
+}
+
+.modal-num {
+  width: 70px;
+  text-align: right;
+  padding: 4px 6px;
+}
+
+.unit {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  width: 40px;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: var(--hairline);
+}
+
+/* ==========================================================================
+   13. Reduced Motion Support
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

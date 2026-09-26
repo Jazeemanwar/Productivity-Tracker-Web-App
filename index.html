@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="description" content="TimeLens — See where your day actually goes, and what to do about it. Kinetic Clarity Productivity Station."/>
+  <title>TimeLens — Kinetic Clarity Productivity Station</title>
+
+  <!-- Tailwind CSS CDN with Forms & Container Plugins -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Tailwind Configuration matching Frontend/kinetic_clarity and alex_s_focus -->
+  <script data-purpose="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            appDark: {
+              950: '#05070c',
+              900: '#07090e',
+              850: '#0b0f17',
+              800: '#111622',
+              750: '#131b2e',
+              700: '#171f2f',
+              600: '#1f2a3e',
+              border: '#1f293d',
+              borderLight: '#2c3a54'
+            },
+            accent: {
+              purple: '#7952f5',
+              indigo: '#6366f1',
+              violet: '#8b5cf6',
+              cyan: '#06b6d4',
+              amber: '#f59e0b',
+              emerald: '#10b981',
+              rose: '#f43f5e',
+              sky: '#0ea5e9'
+            },
+            // TimeLens Category Tokens (Kinetic Clarity Specification)
+            tl: {
+              sleep: '#6366f1',      // Electric Violet
+              work: '#10b981',       // Mint Emerald
+              screens: '#f43f5e',    // Coral Rose (Distraction/Screen alert)
+              exercise: '#0ea5e9',   // Soft Sky Blue (Physical recharge)
+              social: '#a855f7',     // Purple Orchid
+              other: '#f59e0b'       // Warm Amber
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', '"IBM Plex Mono"', 'ui-monospace', 'monospace']
+          },
+          boxShadow: {
+            'glow-purple': '0 0 25px -5px rgba(121, 82, 245, 0.45)',
+            'glow-indigo': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
+            'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.35)',
+            'glow-rose': '0 0 25px -5px rgba(244, 63, 94, 0.45)',
+            'card-glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Chart.js via CDN for secondary breakdown view -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Core Page Styles from Frontend -->
+  <style data-purpose="base-styling">
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #07090e;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Glassmorphism Styles from Frontend */
+    .glass-card {
+      background: linear-gradient(135deg, rgba(17, 22, 34, 0.85) 0%, rgba(13, 17, 28, 0.92) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    
+    .glass-card:hover {
+      border-color: rgba(121, 82, 245, 0.25);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(11, 15, 23, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f293d;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #7952f5;
+    }
+
+    /* Audio Equalizer animation */
+    @keyframes bounceBars {
+      0%, 100% { height: 6px; }
+      50% { height: 26px; }
+    }
+    .eq-bar {
+      animation: bounceBars 1.2s ease-in-out infinite;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.15s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.3s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.45s; }
+    .eq-bar:nth-child(5) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(6) { animation-delay: 0.35s; }
+    .eq-bar:nth-child(7) { animation-delay: 0.5s; }
+    .eq-bar:nth-child(8) { animation-delay: 0.1s; }
+
+    /* Day Dial Segment Interactive Styles */
+    .dial-segment {
+      cursor: pointer;
+      transition: opacity 120ms ease, stroke-width 120ms ease;
+      stroke: #0b0f17;
+      stroke-width: 1.5;
+    }
+    .dial-segment:hover {
+      stroke: #ffffff;
+      stroke-width: 2.5;
+      opacity: 0.95;
+      filter: drop-shadow(0 0 6px rgba(121, 82, 245, 0.6));
+    }
+    .dial-needle {
+      transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform-origin: 160px 160px;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-between selection:bg-accent-purple selection:text-white relative pb-28">
+  <!-- Ambient Background Lighting Glows -->
+  <div class="fixed top-0 left-1/4 w-96 h-96 bg-purple-700/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-10 right-10 w-[450px] h-[450px] bg-indigo-600/10 rounded-full blur-[160px] pointer-events-none -z-10"></div>
+  <div class="fixed top-1/2 -left-20 w-80 h-80 bg-blue-600/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
+
+  <!-- Main Outer Container -->
+  <div class="flex flex-col lg:flex-row min-h-screen w-full max-w-[1560px] mx-auto p-3 sm:p-5 lg:p-7 gap-5 sm:gap-7">
+    <!-- BEGIN: LeftSidebarDock (Integrated with TimeLens Logo) -->
+    <aside class="w-full lg:w-20 shrink-0 flex lg:flex-col items-center justify-between bg-appDark-850/85 backdrop-blur-xl border border-appDark-border rounded-3xl p-3.5 shadow-2xl z-30" data-purpose="primary-sidebar">
+      <!-- Official TimeLens Logo from Frontend/timelens_logo -->
+      <div class="flex items-center gap-3 lg:flex-col mb-2">
+        <div class="cursor-pointer hover:scale-105 transition-transform" title="TimeLens — Kinetic Clarity">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none" class="w-10 h-10">
+            <defs>
+              <linearGradient id="tl_grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#6366F1" />
+                <stop offset="50%" stop-color="#8B5CF6" />
+                <stop offset="100%" stop-color="#06B6D4" />
+              </linearGradient>
+            </defs>
+            <rect width="40" height="40" rx="10" fill="#131B2E" stroke="#31394D" stroke-width="1.5"/>
+            <circle cx="20" cy="20" r="11" stroke="url(#tl_grad)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="45 22"/>
+            <circle cx="20" cy="20" r="4.5" fill="#6366F1"/>
+            <path d="M20 15.5V20L23 23" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="28" cy="13" r="2.5" fill="#10B981"/>
+          </svg>
+        </div>
+        <!-- macOS Style Window Dot Indicators -->
+        <div class="hidden lg:flex items-center gap-1.5 mt-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 hover:opacity-100 transition-opacity cursor-pointer"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 hover:opacity-100 transition-opacity cursor-pointer"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 hover:opacity-100 transition-opacity cursor-pointer"></span>
+        </div>
+      </div>
+
+      <!-- Navigation Icon Buttons -->
+      <nav class="flex lg:flex-col items-center justify-center gap-3 w-full" data-purpose="sidebar-nav">
+        <!-- Dashboard Button (Active) -->
+        <button id="nav-btn-dashboard" aria-label="Dashboard" class="sidebar-nav-item relative group p-3 rounded-2xl bg-gradient-to-tr from-accent-purple to-indigo-600 text-white shadow-glow-purple transition-all duration-300 transform hover:scale-105" type="button" title="Dashboard">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path>
+          </svg>
+          <span class="active-indicator absolute -right-1 top-2.5 w-1.5 h-1.5 rounded-full bg-white hidden lg:block"></span>
+        </button>
+        <!-- Time Logger / Day Dial Button -->
+        <button id="nav-btn-dial" aria-label="Day Dial Time Tracker" class="sidebar-nav-item relative group p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button" title="Day Dial Time Tracker">
+          <svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="active-indicator absolute -right-1 top-2.5 w-1.5 h-1.5 rounded-full bg-white hidden lg:block"></span>
+        </button>
+        <!-- Tasks Checklist Button -->
+        <button id="nav-btn-tasks" aria-label="Tasks Checklist" class="sidebar-nav-item relative group p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button" title="Tasks Checklist">
+          <svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewBox="0 0 24 24">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span class="active-indicator absolute -right-1 top-2.5 w-1.5 h-1.5 rounded-full bg-white hidden lg:block"></span>
+        </button>
+        <!-- Focus Timer Button / Switch -->
+        <button id="nav-btn-timer" aria-label="Pomodoro Focus Timer" class="sidebar-nav-item relative group p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button" title="Focus Timer Switch (Click to Start / Pause)">
+          <svg id="navTimerIcon" class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <!-- Running status beacon -->
+          <span id="navTimerBeacon" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-appDark-850 animate-pulse"></span>
+          <span class="active-indicator absolute -right-1 top-2.5 w-1.5 h-1.5 rounded-full bg-white hidden lg:block"></span>
+        </button>
+        <!-- Focus Music Player Button -->
+        <button id="nav-btn-music" aria-label="Focus Music Player" class="sidebar-nav-item relative group p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button" title="Focus Music Player (YouTube & Audio)">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          <span id="navMusicBeacon" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-appDark-850 animate-pulse"></span>
+          <span class="active-indicator absolute -right-1 top-2.5 w-1.5 h-1.5 rounded-full bg-white hidden lg:block"></span>
+        </button>
+        <!-- Settings Button -->
+        <button id="btnOpenSettings" aria-label="Settings" class="sidebar-nav-item relative group p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button" title="Configure Targets & Ideal Day">
+          <svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </nav>
+
+      <!-- Bottom Reset / New Day Button -->
+      <div class="hidden lg:flex flex-col items-center mt-auto pt-6 border-t border-appDark-border/60 w-full">
+        <button id="btnResetDay" aria-label="Start New Day" class="p-3 text-slate-400 hover:text-rose-400 transition-colors" type="button" title="Start New Day (Reset logs)">
+          <svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewBox="0 0 24 24">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+        </button>
+      </div>
+    </aside>
+    <!-- END: LeftSidebarDock -->
+
+    <!-- Main Workspace Area -->
+    <main class="flex-1 flex flex-col gap-6" data-purpose="dashboard-main-content">
+      <!-- BEGIN: HeaderSection -->
+      <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-1" data-purpose="app-header">
+        <!-- Brand Title & Tagline -->
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2">
+              TimeLens
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-purple via-indigo-400 to-accent-cyan text-2xl font-bold">Station</span>
+            </h1>
+            <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-accent-purple/20 border border-accent-purple/40 text-accent-purple text-xs font-semibold">Hackathon MVP</span>
+          </div>
+          <p class="text-sm font-medium text-slate-400 mt-1 tracking-wide flex items-center gap-2 flex-wrap">
+            <span>"See where your day actually goes, and what to do about it"</span>
+          </p>
+        </div>
+
+        <!-- Clock, Current Date & 1-Click Judge Demo Pitch Button -->
+        <div class="flex items-center gap-4 sm:gap-6">
+          <button id="btnLoadPitchDemo" class="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-accent-rose/90 to-amber-500 text-white font-semibold text-xs shadow-glow-rose hover:scale-105 transition-transform" title="Load realistic day where screen time exceeds sleep for 60s hackathon pitch">
+            <span>⚡ Pitch Demo</span>
+          </button>
+          
+          <div class="text-left sm:text-right" data-purpose="live-clock-card">
+            <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight flex items-baseline sm:justify-end gap-1">
+              <span id="header-clock">07:45</span>
+              <span id="header-ampm" class="text-xs font-semibold text-accent-indigo">AM</span>
+            </div>
+            <p id="header-date" class="text-xs font-medium text-slate-400 mt-0.5">Tuesday, May 28, 2024</p>
+          </div>
+        </div>
+      </header>
+      <!-- END: HeaderSection -->
+
+      <!-- ======================================================================
+           ROW 1: TimeLens Core — The 24-Hour Day Dial & The Diagnostic Insight Card
+           ====================================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5" data-purpose="hero-timelens-row">
+        <!-- 1. The 24-Hour Day Dial Hero (5 Cols) -->
+        <div id="dayDialCard" class="glass-card rounded-3xl p-5 lg:col-span-5 flex flex-col justify-between items-center text-center shadow-lg relative overflow-hidden transition-all duration-300" data-purpose="day-dial-widget">
+          <!-- Widget Title & View Toggle -->
+          <div class="w-full flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-accent-indigo animate-pulse"></span>
+              <h2 class="text-sm font-bold tracking-wide text-white">The 24-Hour Day Dial</h2>
+            </div>
+            <div class="flex items-center bg-appDark-850 p-1 rounded-xl border border-appDark-border text-xs font-medium">
+              <button id="btnToggleDial" class="px-2.5 py-1 rounded-lg bg-accent-purple text-white font-semibold transition">Dial</button>
+              <button id="btnToggleChart" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">Chart</button>
+            </div>
+          </div>
+
+          <!-- Dial Stage Area -->
+          <div class="relative w-72 h-72 my-1 flex items-center justify-center">
+            <!-- 24-Hour SVG Dial -->
+            <div id="dialContainer" class="w-full h-full relative">
+              <svg id="dayDialSvg" viewBox="0 0 320 320" class="w-full h-full overflow-visible">
+                <!-- Track guides -->
+                <circle cx="160" cy="160" r="140" fill="none" stroke="#1f293d" stroke-width="1" opacity="0.6"/>
+                <circle cx="160" cy="160" r="92" fill="#0b0f17" stroke="#1f293d" stroke-width="1.5"/>
+
+                <!-- Dial hour ticks (00, 06, 12, 18) -->
+                <g class="font-mono text-[10px] font-bold fill-slate-500" aria-hidden="true">
+                  <text x="160" y="14" text-anchor="middle">00</text>
+                  <text x="312" y="164" text-anchor="end">06</text>
+                  <text x="160" y="316" text-anchor="middle">12</text>
+                  <text x="8" y="164" text-anchor="start">18</text>
+                </g>
+
+                <!-- 24 Segments container -->
+                <g id="dialSegmentsGroup"></g>
+
+                <!-- Live Clock Needle -->
+                <g id="dialNeedleGroup">
+                  <line id="dialNeedle" x1="160" y1="160" x2="160" y2="24" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" class="dial-needle"/>
+                  <circle cx="160" cy="160" r="5" fill="#6366f1" stroke="#07090e" stroke-width="2"/>
+                  <circle id="dialNeedleTip" cx="160" cy="24" r="4" fill="#06b6d4" stroke="#ffffff" stroke-width="1.5" class="dial-needle"/>
+                </g>
+              </svg>
+
+              <!-- Center Hero Stat Overlay -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span id="heroStatNumber" class="text-3xl font-extrabold text-white font-mono tracking-tight tabular">0h 00m</span>
+                <span id="heroStatLabel" class="text-[11px] font-semibold text-slate-400 mt-0.5">no time logged</span>
+                <span id="heroStatSub" class="text-[10px] text-accent-indigo font-medium mt-0.5">0.0 / 24.0h total</span>
+              </div>
+            </div>
+
+            <!-- Alternative Proportional Doughnut Chart -->
+            <div id="chartContainer" class="w-full h-full relative" style="display: none;">
+              <canvas id="donutChartCanvas"></canvas>
+            </div>
+
+            <!-- Dial Tooltip -->
+            <div id="dialTooltip" class="absolute bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded-xl shadow-xl pointer-events-none z-20 font-mono hidden"></div>
+          </div>
+
+          <!-- Category Legend Swatches with Colorblind Patterns -->
+          <div class="w-full grid grid-cols-3 gap-2 pt-3 border-t border-appDark-border/60 text-left text-[11px]">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#6366f1]"></span>
+              <span class="text-slate-300 font-medium truncate">Sleep</span>
+              <span id="leg-Sleep" class="ml-auto font-mono text-slate-400">0.0h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
+              <span class="text-slate-300 font-medium truncate">Work</span>
+              <span id="leg-Work" class="ml-auto font-mono text-slate-400">0.0h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#f43f5e]"></span>
+              <span class="text-slate-300 font-medium truncate">Screens</span>
+              <span id="leg-Screens" class="ml-auto font-mono text-slate-400">0.0h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#0ea5e9]"></span>
+              <span class="text-slate-300 font-medium truncate">Exercise</span>
+              <span id="leg-Exercise" class="ml-auto font-mono text-slate-400">0.0h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#a855f7]"></span>
+              <span class="text-slate-300 font-medium truncate">Social</span>
+              <span id="leg-Social" class="ml-auto font-mono text-slate-400">0.0h</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
+              <span class="text-slate-300 font-medium truncate">Other</span>
+              <span id="leg-Other" class="ml-auto font-mono text-slate-400">0.0h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. The Diagnostic Insight Card & Actual vs. Ideal Habit Allocation (7 Cols) -->
+        <div class="glass-card rounded-3xl p-5 lg:col-span-7 flex flex-col justify-between shadow-lg" data-purpose="insights-and-budget-widget">
+          <!-- The Plain-English AI Insight Banner -->
+          <div id="insightCardWrapper" class="p-4 rounded-2xl bg-appDark-850/80 border border-accent-indigo/30 transition-all duration-300 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span id="insightIconBadge" class="p-1 rounded-lg bg-accent-purple/20 text-accent-purple">
+                  <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </span>
+                <span id="insightTypeBadge" class="text-xs font-bold uppercase tracking-wider text-accent-indigo">Diagnostic Insight</span>
+              </div>
+              <span id="insightFlagPill" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">Action Required</span>
+            </div>
+            <p id="insightTextBody" class="text-sm font-semibold text-slate-100 leading-snug">
+              Loading your day's breakdown...
+            </p>
+            <div id="insightNudgeContainer" class="mt-2.5 pt-2 border-t border-appDark-border/60 flex items-start gap-2 text-xs text-slate-300">
+              <span class="text-accent-cyan font-bold">💡 Nudge:</span>
+              <span id="insightNudgeText" class="italic">Analyzing habits...</span>
+            </div>
+          </div>
+
+          <!-- Actual vs. Ideal Habit Progress Bars -->
+          <div class="mt-4">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Actual vs. Ideal Day Allocation</h3>
+              <span class="text-[11px] text-slate-400">Target benchmarks</span>
+            </div>
+
+            <div class="space-y-2.5">
+              <!-- Sleep Bar -->
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs font-medium">
+                  <span class="text-slate-300 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#6366f1]"></span> Sleep
+                  </span>
+                  <span id="barText-Sleep" class="font-mono text-slate-400">0.0 / 8.0h</span>
+                </div>
+                <div class="h-2 rounded-full bg-appDark-850 border border-appDark-border overflow-hidden relative">
+                  <div id="barFill-Sleep" class="h-full bg-gradient-to-r from-indigo-500 to-accent-purple rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <!-- Work / Study Bar -->
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs font-medium">
+                  <span class="text-slate-300 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#10b981]"></span> Work / Study
+                  </span>
+                  <span id="barText-Work" class="font-mono text-slate-400">0.0 / 6.0h</span>
+                </div>
+                <div class="h-2 rounded-full bg-appDark-850 border border-appDark-border overflow-hidden relative">
+                  <div id="barFill-Work" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <!-- Screens & Social Bar (Flags Over Budget) -->
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs font-medium">
+                  <span class="text-slate-300 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#f43f5e]"></span> Screens & Social Media
+                    <span id="barWarn-Screens" class="hidden text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400">⚠ Over Budget</span>
+                  </span>
+                  <span id="barText-Screens" class="font-mono text-slate-400">0.0 / 1.5h</span>
+                </div>
+                <div class="h-2 rounded-full bg-appDark-850 border border-appDark-border overflow-hidden relative">
+                  <div id="barFill-Screens" class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <!-- Exercise Bar -->
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs font-medium">
+                  <span class="text-slate-300 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#0ea5e9]"></span> Physical Exercise
+                  </span>
+                  <span id="barText-Exercise" class="font-mono text-slate-400">0.0 / 1.0h</span>
+                </div>
+                <div class="h-2 rounded-full bg-appDark-850 border border-appDark-border overflow-hidden relative">
+                  <div id="barFill-Exercise" class="h-full bg-gradient-to-r from-cyan-500 to-blue-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Presets Row -->
+          <div class="mt-4 pt-3 border-t border-appDark-border/60 flex flex-wrap items-center gap-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">Presets:</span>
+            <button class="preset-btn px-2.5 py-1 rounded-xl bg-appDark-850 hover:bg-appDark-700 text-xs font-medium text-slate-300 border border-appDark-border transition" data-preset="study">
+              🎓 Study Day
+            </button>
+            <button class="preset-btn px-2.5 py-1 rounded-xl bg-appDark-850 hover:bg-appDark-700 text-xs font-medium text-slate-300 border border-appDark-border transition" data-preset="work">
+              💼 Work Day
+            </button>
+            <button class="preset-btn px-2.5 py-1 rounded-xl bg-appDark-850 hover:bg-appDark-700 text-xs font-medium text-slate-300 border border-appDark-border transition" data-preset="rest">
+              🌿 Rest Day
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           ROW 2: Quick Activity Logger & Pomodoro Focus Timer
+           ====================================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5" data-purpose="middle-widgets-row">
+        <!-- 1. Quick Time Logger Form (7 Cols) -->
+        <div class="glass-card rounded-3xl p-5 lg:col-span-7 flex flex-col justify-between shadow-lg" data-purpose="logger-form-widget">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-accent-purple"></span>
+              <h2 class="text-sm font-bold tracking-wide text-white">Log Time Block</h2>
+            </div>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-appDark-700/80 text-accent-indigo border border-appDark-border font-medium font-mono" id="loggedBadgeTotal">0.0 / 24.0h</span>
+          </div>
+
+          <!-- Quick Entry Form -->
+          <form id="timeEntryForm" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Category</label>
+                <select id="inputCategory" class="w-full bg-appDark-850 border border-appDark-border rounded-xl px-3 py-2 text-xs text-white focus:border-accent-purple focus:ring-1 focus:ring-accent-purple outline-none">
+                  <option value="Work / Study">Work / Study</option>
+                  <option value="Sleep">Sleep</option>
+                  <option value="Screens & Social Media">Screens & Social Media</option>
+                  <option value="Exercise">Exercise</option>
+                  <option value="In-person Social">In-person Social</option>
+                  <option value="Other">Other / Routine</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Hours</label>
+                <input id="inputHours" type="number" step="0.25" min="0.25" max="24" placeholder="e.g. 2.5" required class="w-full bg-appDark-850 border border-appDark-border rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-accent-purple focus:ring-1 focus:ring-accent-purple outline-none"/>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Start Hour</label>
+                <select id="inputStartHour" class="w-full bg-appDark-850 border border-appDark-border rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-accent-purple focus:ring-1 focus:ring-accent-purple outline-none">
+                  <option value="auto">Auto-fill Next Slot</option>
+                  <option value="0">00:00 (Midnight)</option>
+                  <option value="6">06:00 AM</option>
+                  <option value="8">08:00 AM</option>
+                  <option value="9">09:00 AM</option>
+                  <option value="12">12:00 PM (Noon)</option>
+                  <option value="14">02:00 PM</option>
+                  <option value="18">06:00 PM</option>
+                  <option value="21">09:00 PM</option>
+                  <option value="23">11:00 PM</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <input id="inputNote" type="text" placeholder="Activity Note (e.g. Deep Work, DSA sprint, Instagram scroll)" class="flex-1 bg-appDark-850 border border-appDark-border rounded-xl px-3 py-2 text-xs text-white focus:border-accent-purple focus:ring-1 focus:ring-accent-purple outline-none"/>
+              <button type="submit" class="px-4 py-2 rounded-xl bg-gradient-to-tr from-accent-purple to-indigo-600 hover:from-accent-purple/90 hover:to-indigo-500 text-white text-xs font-semibold shadow-glow-purple transition-all flex items-center gap-1.5 shrink-0">
+                <span>+ Add Block</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Running Log Stream -->
+          <div class="mt-4 pt-3 border-t border-appDark-border/60">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Today's Activity Log</span>
+            <div id="activityLogList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+              <!-- Dynamically populated entries -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Pomodoro Focus Timer from Frontend (5 Cols) -->
+        <div id="focusTimerCard" class="glass-card rounded-3xl p-5 lg:col-span-5 flex flex-col justify-between items-center text-center shadow-lg relative transition-all duration-300" data-purpose="focus-timer-widget">
+          <div class="w-full flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-accent-purple"></span>
+              <h2 class="text-sm font-bold text-white tracking-wide">Focus Timer</h2>
+            </div>
+            <span class="text-[11px] font-mono text-accent-indigo">25 / 5 Rule</span>
+          </div>
+
+          <!-- Circular Progress Pomodoro -->
+          <div class="relative w-44 h-44 my-2 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" fill="transparent" r="68" stroke="#171f2f" stroke-width="8"></circle>
+              <circle id="timer-progress-ring" class="transition-all duration-700 filter drop-shadow-[0_0_8px_rgba(121,82,245,0.7)]" cx="80" cy="80" fill="transparent" r="68" stroke="url(#timerGradient)" stroke-dasharray="427" stroke-dashoffset="106" stroke-linecap="round" stroke-width="8"></circle>
+              <defs>
+                <linearGradient id="timerGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+                  <stop offset="0%" stop-color="#8b5cf6"></stop>
+                  <stop offset="50%" stop-color="#6366f1"></stop>
+                  <stop offset="100%" stop-color="#06b6d4"></stop>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span class="text-3xl font-extrabold text-white tracking-tight font-mono" id="timer-display">25:00</span>
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Deep Work</span>
+            </div>
+          </div>
+
+          <!-- Controls: Play/Pause & Reset -->
+          <div class="flex items-center gap-4 mt-1">
+            <button aria-label="Play Timer" class="w-11 h-11 rounded-full bg-gradient-to-tr from-accent-purple to-indigo-600 text-white flex items-center justify-center shadow-glow-purple hover:scale-105 active:scale-95 transition-all" id="timer-toggle-btn" type="button">
+              <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+            </button>
+            <button aria-label="Reset Timer" class="p-2.5 rounded-full text-slate-400 hover:text-white hover:bg-appDark-700 transition" id="timer-reset-btn" type="button">
+              <svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           ROW 3: Tasks & Habit Tracker (from Frontend/alex_s_focus)
+           ====================================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5" data-purpose="tasks-and-habits-row">
+        <!-- 1. My Tasks Checklist (7 Cols) -->
+        <div id="tasksWidgetCard" class="glass-card rounded-3xl p-5 lg:col-span-7 flex flex-col justify-between shadow-lg transition-all duration-300" data-purpose="tasks-widget">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-sm font-bold text-white tracking-wide flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Execution Tasks
+            </h2>
+            <div class="flex items-center gap-2">
+              <button id="btnAddNewTaskPrompt" class="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-accent-purple/90 hover:bg-accent-purple text-white shadow-glow-purple transition">
+                <span>+</span> Add Task
+              </button>
+            </div>
+          </div>
+
+          <div id="tasksContainer" class="space-y-2.5">
+            <!-- Task 1 -->
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+              <div class="flex items-center gap-3">
+                <input checked class="task-checkbox w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+                <span class="task-label text-xs font-medium text-slate-400 line-through">Prepare Hackathon Demo Pitch</span>
+              </div>
+              <span class="text-[11px] font-medium text-slate-400">Today</span>
+            </div>
+            <!-- Task 2 -->
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+              <div class="flex items-center gap-3">
+                <input class="task-checkbox w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+                <span class="task-label text-xs font-medium text-slate-200 group-hover:text-white">Implement 24-Hour Day Dial Component</span>
+              </div>
+              <span class="text-[11px] font-medium text-slate-400">Today</span>
+            </div>
+            <!-- Task 3 -->
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+              <div class="flex items-center gap-3">
+                <input class="task-checkbox w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+                <span class="task-label text-xs font-medium text-slate-200 group-hover:text-white">Review Screen-Time vs Sleep Diagnostic Rules</span>
+              </div>
+              <span class="text-[11px] font-medium text-slate-400">Today</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Lo-Fi Beats Study Music Player with YouTube Search & File Upload (5 Cols) -->
+        <div id="musicPlayerCard" class="glass-card rounded-3xl p-5 lg:col-span-5 flex flex-col justify-between shadow-lg relative transition-all duration-300" data-purpose="music-player-widget">
+          <!-- Top Row: Icon, Title, Live Status & Source Switchers -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div id="musicPlayerIconContainer" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-accent-purple to-indigo-700 flex items-center justify-center text-white shadow-glow-purple shrink-0 transition-all duration-300">
+                <svg id="musicSourceIcon" class="w-6 h-6 stroke-current stroke-2 fill-none" viewBox="0 0 24 24">
+                  <path d="M9 18V5l12-2v13"></path>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span id="musicSourceBadge" class="text-[10px] font-bold uppercase tracking-wider text-accent-indigo block">Focus Audio Player</span>
+                  <span id="musicLiveBadge" class="hidden px-1.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/40 text-[9px] font-bold text-red-400 animate-pulse tracking-wide">● YOUTUBE</span>
+                </div>
+                <h3 id="musicTrackTitle" class="text-sm font-bold text-white leading-tight truncate" title="Lo-Fi Beats • Ambient Wave">Lo-Fi Beats • Ambient Wave</h3>
+                <p id="musicTrackSubtitle" class="text-[11px] text-slate-400 truncate">Default Focus Drone • Synthesized</p>
+              </div>
+            </div>
+
+            <!-- Action Buttons: YouTube & File Upload -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button id="btnToggleYtSearch" type="button" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-xs font-semibold text-red-300 hover:text-white transition shadow-sm" title="Search & stream music from YouTube">
+                <svg class="w-3.5 h-3.5 fill-red-500" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                <span>YouTube</span>
+              </button>
+
+              <input type="file" id="musicFileInput" accept="audio/*" multiple class="hidden" />
+              <button id="btnUploadMusic" type="button" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-appDark-850 hover:bg-appDark-700 border border-appDark-border hover:border-accent-purple text-xs font-semibold text-slate-300 hover:text-white transition shadow-sm" title="Add MP3, WAV or other music files from your computer">
+                <svg class="w-3.5 h-3.5 stroke-current stroke-2 fill-none text-accent-purple" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Files</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- YouTube Search & Quick Focus Picks Drawer -->
+          <div id="ytSearchDrawer" class="mt-3.5 p-3 rounded-2xl bg-appDark-900/90 border border-appDark-border/80 shadow-inner space-y-2.5">
+            <form id="ytSearchForm" class="relative flex items-center gap-2">
+              <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-red-500">
+                  <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </div>
+                <input id="ytSearchInput" type="text" autocomplete="off" placeholder="Search YouTube music, artist or paste URL..."
+                  class="w-full pl-8 pr-7 py-1.5 text-xs bg-appDark-850 border border-slate-700/60 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition" />
+                <button id="btnClearYtInput" type="button" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white text-xs" title="Clear search">✕</button>
+
+                <!-- YouTube Live Autocomplete Dropdown -->
+                <div id="ytSuggestionsDropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-appDark-900 border border-slate-700 rounded-xl shadow-2xl z-30 overflow-hidden divide-y divide-slate-800">
+                </div>
+              </div>
+
+              <button id="btnYtSearchSubmit" type="submit" class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold flex items-center gap-1 shadow-md hover:shadow-red-600/30 transition shrink-0">
+                <svg class="w-3.5 h-3.5 stroke-current stroke-2 fill-none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>Play</span>
+              </button>
+            </form>
+
+            <!-- Quick Focus Picks Carousel -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] no-scrollbar">
+              <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider shrink-0 mr-0.5">Focus Picks:</span>
+              <button type="button" class="yt-preset-btn px-2.5 py-0.5 rounded-lg bg-appDark-850 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 hover:border-red-500/50 transition shrink-0 flex items-center gap-1" data-query="Lofi hip hop radio beats to relax study to" data-videoid="jfKfPfyJRdk" data-title="Lofi Girl • Study Beats">
+                <span>🎧</span><span>Lofi Girl</span>
+              </button>
+              <button type="button" class="yt-preset-btn px-2.5 py-0.5 rounded-lg bg-appDark-850 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 hover:border-red-500/50 transition shrink-0 flex items-center gap-1" data-query="Synthwave chill radio focus coding" data-videoid="4xDzrJKXOOY" data-title="Synthwave Radio • Retro Chill">
+                <span>🌌</span><span>Synthwave</span>
+              </button>
+              <button type="button" class="yt-preset-btn px-2.5 py-0.5 rounded-lg bg-appDark-850 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 hover:border-red-500/50 transition shrink-0 flex items-center gap-1" data-query="Deep focus ambient piano study music" data-videoid="DWcJFNfaw90" data-title="Deep Focus • Ambient Piano">
+                <span>🎹</span><span>Piano</span>
+              </button>
+              <button type="button" class="yt-preset-btn px-2.5 py-0.5 rounded-lg bg-appDark-850 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 hover:border-red-500/50 transition shrink-0 flex items-center gap-1" data-query="Gentle rain sounds for sleeping and studying" data-videoid="mPZkdNFkNps" data-title="Rain Sounds • Cozy Thunder">
+                <span>🌧️</span><span>Rain</span>
+              </button>
+              <button type="button" class="yt-preset-btn px-2.5 py-0.5 rounded-lg bg-appDark-850 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 hover:border-red-500/50 transition shrink-0 flex items-center gap-1" data-query="Tokyo jazz cafe chill study" data-videoid="Dx5qFachd3A" data-title="Tokyo Jazz Cafe • Warm Lounge">
+                <span>☕</span><span>Jazz</span>
+              </button>
+              <button type="button" class="yt-preset-btn px-2.5 py-0.5 rounded-lg bg-appDark-850 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/50 hover:border-red-500/50 transition shrink-0 flex items-center gap-1" data-query="Cyberpunk dark ambient study music" data-videoid="sF9qIb8XhFk" data-title="Cyberpunk • Deep Flow State">
+                <span>⚡</span><span>Cyberpunk</span>
+              </button>
+            </div>
+
+            <!-- Dynamic Search Results List (Appears when searching) -->
+            <div id="ytSearchResults" class="hidden mt-2 pt-2 border-t border-slate-700/60 space-y-1.5 max-h-44 overflow-y-auto pr-1">
+            </div>
+          </div>
+
+          <!-- YouTube Video Player Container (Collapsible / Mini-PIP) -->
+          <div id="ytPlayerContainer" class="mt-3 relative rounded-2xl overflow-hidden border border-slate-700/60 bg-black aspect-video max-h-48 transition-all duration-300 hidden">
+            <iframe id="ytIframePlayer" class="w-full h-full border-0" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <div class="absolute top-2 right-2 flex items-center gap-1.5 z-10">
+              <button id="btnToggleVideoDisplay" type="button" class="px-2 py-0.5 rounded-md bg-black/75 hover:bg-black text-[10px] font-medium text-slate-200 hover:text-white border border-white/20 backdrop-blur-sm transition" title="Toggle video visibility (audio keeps playing in background)">
+                Audio Only
+              </button>
+              <a id="btnYtOpenExternal" href="#" target="_blank" rel="noopener noreferrer" class="hidden p-1 rounded-md bg-black/75 hover:bg-black text-slate-200 hover:text-white border border-white/20 backdrop-blur-sm transition" title="Open on YouTube in new tab">
+                <svg class="w-3 h-3 stroke-current stroke-2 fill-none" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              </a>
+            </div>
+            <!-- Click to start sound badge if browser requires user click -->
+            <div id="ytUnmuteNotice" class="hidden absolute bottom-2 left-2 z-10 px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-sm border border-white/20 text-[11px] text-white flex items-center gap-1.5 cursor-pointer shadow-lg hover:bg-black transition">
+              <span>🔊</span>
+              <span>Click to start audio</span>
+            </div>
+          </div>
+
+          <!-- Middle: Scrub timeline bar and time readout -->
+          <div class="mt-3.5 space-y-1">
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+              <span id="musicTimeCurrent">00:00</span>
+              <div class="flex items-center gap-2">
+                <button id="btnResetToSynth" type="button" class="hidden text-[10px] text-accent-indigo hover:text-white underline transition">Switch to Built-in Drone</button>
+                <span id="musicTimeDuration">Loop</span>
+              </div>
+            </div>
+            <div class="relative w-full flex items-center">
+              <input id="musicProgressBar" type="range" min="0" max="100" value="0" step="0.1" class="w-full h-1.5 bg-appDark-850 rounded-full appearance-none cursor-pointer accent-accent-purple focus:outline-none"/>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Controls, Volume & Animated Equalizer -->
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-appDark-border/60">
+            <!-- Playback Controls -->
+            <div class="flex items-center gap-2">
+              <button id="btnMusicPrev" aria-label="Previous track" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-appDark-700 transition" title="Previous Track / Station">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path></svg>
+              </button>
+              <button id="btnMusicPlay" aria-label="Play/Pause track" class="w-9 h-9 rounded-full bg-accent-purple text-white flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-sm">
+                <svg id="musicPlayIcon" class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </button>
+              <button id="btnMusicNext" aria-label="Next track" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-appDark-700 transition" title="Next Track / Station">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
+              </button>
+              <span id="musicStatusText" class="text-xs font-mono text-slate-300 ml-1">Paused</span>
+            </div>
+
+            <!-- Volume Control & Equalizer Waveform -->
+            <div class="flex items-center gap-3">
+              <!-- Mini toggle to show video when collapsed -->
+              <button id="btnShowVideoMini" type="button" class="hidden text-[10px] px-2 py-0.5 rounded-md bg-appDark-850 hover:bg-appDark-700 text-slate-300 hover:text-white border border-slate-700 transition" title="Show video preview">
+                📺 Video
+              </button>
+
+              <!-- Volume slider -->
+              <div class="hidden sm:flex items-center gap-1.5" title="Volume">
+                <button id="btnMuteToggle" type="button" class="text-slate-400 hover:text-white transition">
+                  <svg id="volumeIcon" class="w-3.5 h-3.5 stroke-current stroke-2 fill-none" viewBox="0 0 24 24">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  </svg>
+                </button>
+                <input id="musicVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.7" class="w-14 h-1 bg-appDark-850 rounded-full appearance-none cursor-pointer accent-accent-purple"/>
+              </div>
+
+              <!-- Waveform Equalizer Animation -->
+              <div id="waveformBars" class="flex items-end gap-1 h-7 px-1 opacity-20 transition-opacity">
+                <span class="w-1 bg-accent-purple rounded-full eq-bar"></span>
+                <span class="w-1 bg-indigo-500 rounded-full eq-bar"></span>
+                <span class="w-1 bg-violet-400 rounded-full eq-bar"></span>
+                <span class="w-1 bg-accent-purple rounded-full eq-bar"></span>
+                <span class="w-1 bg-indigo-400 rounded-full eq-bar"></span>
+                <span class="w-1 bg-purple-300 rounded-full eq-bar"></span>
+                <span class="w-1 bg-indigo-600 rounded-full eq-bar"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden HTML5 Audio Element -->
+          <audio id="realAudioPlayer" preload="auto" loop></audio>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- BEGIN: FloatingAppDock (macOS inspired bottom dock from Frontend) -->
+  <footer class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50" data-purpose="floating-macos-dock">
+    <div class="flex items-center gap-3 px-4 py-2.5 rounded-3xl bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
+      <!-- TimeLens Day Dial -->
+      <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="TimeLens Dial" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-accent-purple to-indigo-600 text-white hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">DayDial</span>
+      </button>
+
+      <!-- Calendar Date Badge -->
+      <button aria-label="Calendar Dock" class="group relative w-10 h-10 rounded-2xl bg-slate-100 text-slate-900 flex flex-col items-center justify-center overflow-hidden hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+        <span id="dockMonth" class="w-full bg-rose-500 text-white text-[8px] font-extrabold uppercase leading-none py-0.5 text-center">MAY</span>
+        <span id="dockDay" class="text-sm font-extrabold leading-none mt-0.5">28</span>
+        <span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Calendar</span>
+      </button>
+
+      <!-- Pomodoro Timer -->
+      <button onclick="document.getElementById('timer-toggle-btn').click()" aria-label="Timer" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-500 text-white hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Timer</span>
+      </button>
+
+      <!-- Music Player Shortcut -->
+      <button id="dockBtnMusic" onclick="document.getElementById('nav-btn-music').click()" aria-label="Focus Music" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-600 text-white hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">YouTubeMusic</span>
+      </button>
+
+      <!-- Pitch Demo Shortcut -->
+      <button onclick="document.getElementById('btnLoadPitchDemo').click()" aria-label="Pitch Demo" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+        <span class="text-xs font-bold">⚡</span>
+        <span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">DemoPitch</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Target Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div class="glass-card rounded-3xl p-6 max-w-md w-full border border-appDark-border">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-white">Daily Target Configuration</h3>
+        <button id="btnCloseSettings" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+      <p class="text-xs text-slate-400 mb-4">Set your healthy ideal hours. TimeLens uses these targets to detect over-budget screen times and sleep deficits.</p>
+      
+      <form id="settingsForm" class="space-y-2.5">
+        <div class="flex items-center justify-between text-xs">
+          <label class="text-slate-300">Sleep Target</label>
+          <input type="number" step="0.5" id="targetSleep" value="8.0" class="w-20 bg-appDark-850 border border-appDark-border rounded-lg px-2 py-1 text-right text-white font-mono"/>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <label class="text-slate-300">Work / Study Target</label>
+          <input type="number" step="0.5" id="targetWork" value="6.0" class="w-20 bg-appDark-850 border border-appDark-border rounded-lg px-2 py-1 text-right text-white font-mono"/>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <label class="text-slate-300 text-rose-400">Screens & Social Limit</label>
+          <input type="number" step="0.5" id="targetScreens" value="1.5" class="w-20 bg-appDark-850 border border-rose-500/40 rounded-lg px-2 py-1 text-right text-rose-300 font-mono"/>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <label class="text-slate-300">Exercise Target</label>
+          <input type="number" step="0.25" id="targetExercise" value="1.0" class="w-20 bg-appDark-850 border border-appDark-border rounded-lg px-2 py-1 text-right text-white font-mono"/>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button type="submit" class="px-4 py-1.5 rounded-xl bg-accent-purple text-white text-xs font-semibold">Save Targets</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TimeLens Comprehensive Logic Script -->
+  <script data-purpose="timelens-app-core">
+    (function() {
+      'use strict';
+
+      // 1. Categories & Colors (Kinetic Clarity palette)
+      const CATEGORIES = {
+        'Sleep': { color: '#6366f1', defaultIdeal: 8.0, isLimit: false },
+        'Work / Study': { color: '#10b981', defaultIdeal: 6.0, isLimit: false },
+        'Screens & Social Media': { color: '#f43f5e', defaultIdeal: 1.5, isLimit: true },
+        'Exercise': { color: '#0ea5e9', defaultIdeal: 1.0, isLimit: false },
+        'In-person Social': { color: '#a855f7', defaultIdeal: 2.0, isLimit: false },
+        'Other': { color: '#f59e0b', defaultIdeal: 5.5, isLimit: false }
+      };
+
+      const PRESETS = {
+        study: [
+          { id: 'p1', category: 'Sleep', hours: 7.5, startHour: 23, note: 'Core night sleep' },
+          { id: 'p2', category: 'Work / Study', hours: 5.5, startHour: 8, note: 'Lectures & DSA Practice' },
+          { id: 'p3', category: 'Screens & Social Media', hours: 3.5, startHour: 14, note: 'YouTube & feeds' },
+          { id: 'p4', category: 'Exercise', hours: 1.0, startHour: 18, note: 'Campus run' },
+          { id: 'p5', category: 'In-person Social', hours: 2.0, startHour: 19.5, note: 'Dinner with peers' },
+          { id: 'p6', category: 'Other', hours: 4.5, startHour: 6.5, note: 'Transit & meals' }
+        ],
+        work: [
+          { id: 'w1', category: 'Sleep', hours: 7.0, startHour: 0, note: 'Core sleep' },
+          { id: 'w2', category: 'Exercise', hours: 0.5, startHour: 7.5, note: 'Morning stretch' },
+          { id: 'w3', category: 'Work / Study', hours: 8.0, startHour: 9, note: 'Sprint delivery & calls' },
+          { id: 'w4', category: 'Screens & Social Media', hours: 4.0, startHour: 18, note: 'Evening doomscroll' },
+          { id: 'w5', category: 'In-person Social', hours: 1.5, startHour: 22, note: 'Call with family' },
+          { id: 'w6', category: 'Other', hours: 3.0, startHour: 7, note: 'Errands & routine' }
+        ],
+        rest: [
+          { id: 'r1', category: 'Sleep', hours: 9.0, startHour: 23, note: 'Deep sleep & rest' },
+          { id: 'r2', category: 'Exercise', hours: 1.5, startHour: 9.5, note: 'Nature hike' },
+          { id: 'r3', category: 'In-person Social', hours: 4.0, startHour: 12, note: 'Brunch & friends' },
+          { id: 'r4', category: 'Screens & Social Media', hours: 4.5, startHour: 18, note: 'Movies & leisure' },
+          { id: 'r5', category: 'Work / Study', hours: 0.5, startHour: 11, note: 'Weekly review' },
+          { id: 'r6', category: 'Other', hours: 4.5, startHour: 8.5, note: 'Cooking & hobbies' }
+        ],
+        pitch: [
+          { id: 'demo-1', category: 'Sleep', hours: 5.5, startHour: 1, note: 'Late night sleep' },
+          { id: 'demo-2', category: 'Work / Study', hours: 4.5, startHour: 9, note: 'Scattered work session' },
+          { id: 'demo-3', category: 'Screens & Social Media', hours: 7.5, startHour: 14, note: 'Doomscrolling & reels' },
+          { id: 'demo-4', category: 'In-person Social', hours: 1.5, startHour: 21.5, note: 'Quick tea meet' },
+          { id: 'demo-5', category: 'Other', hours: 5.0, startHour: 6.5, note: 'Meals, transit & idle' }
+        ]
+      };
+
+      // State Management
+      let state = {
+        entries: [],
+        ideals: {
+          'Sleep': 8.0,
+          'Work / Study': 6.0,
+          'Screens & Social Media': 1.5,
+          'Exercise': 1.0,
+          'In-person Social': 2.0,
+          'Other': 5.5
+        },
+        viewMode: 'dial'
+      };
+
+      let donutChart = null;
+
+      function loadState() {
+        try {
+          const stored = localStorage.getItem('timelens_entries');
+          state.entries = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(PRESETS.study));
+          const storedIdeals = localStorage.getItem('timelens_ideals');
+          if (storedIdeals) state.ideals = JSON.parse(storedIdeals);
+        } catch(e) {
+          state.entries = JSON.parse(JSON.stringify(PRESETS.study));
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem('timelens_entries', JSON.stringify(state.entries));
+          localStorage.setItem('timelens_ideals', JSON.stringify(state.ideals));
+        } catch(e) {}
+      }
+
+      function getCategoryTotals() {
+        const totals = {};
+        for (const cat of Object.keys(CATEGORIES)) totals[cat] = 0;
+        for (const e of state.entries) {
+          totals[e.category] = (totals[e.category] || 0) + (Number(e.hours) || 0);
+        }
+        return totals;
+      }
+
+      function getTotalLogged() {
+        return state.entries.reduce((acc, curr) => acc + (Number(curr.hours) || 0), 0);
+      }
+
+      // Mathematical Arc Calculation for 24 Segments
+      function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+        const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+        return {
+          x: centerX + radius * Math.cos(angleInRadians),
+          y: centerY + radius * Math.sin(angleInRadians)
+        };
+      }
+
+      function describeArc(x, y, innerRadius, outerRadius, startAngle, endAngle) {
+        const startOuter = polarToCartesian(x, y, outerRadius, endAngle);
+        const endOuter = polarToCartesian(x, y, outerRadius, startAngle);
+        const startInner = polarToCartesian(x, y, innerRadius, endAngle);
+        const endInner = polarToCartesian(x, y, innerRadius, startAngle);
+        const arcSweep = endAngle - startAngle <= 180 ? '0' : '1';
+
+        return [
+          'M', startOuter.x, startOuter.y,
+          'A', outerRadius, outerRadius, 0, arcSweep, 0, endOuter.x, endOuter.y,
+          'L', endInner.x, endInner.y,
+          'A', innerRadius, innerRadius, 0, arcSweep, 1, startInner.x, startInner.y,
+          'Z'
+        ].join(' ');
+      }
+
+      // Render Day Dial
+      function renderDayDial() {
+        const group = document.getElementById('dialSegmentsGroup');
+        if (!group) return;
+        group.innerHTML = '';
+
+        // Compute 24 hour slots
+        const slots = new Array(24).fill(null).map((_, i) => ({
+          hour: i,
+          category: null,
+          note: '',
+          color: '#131b2e' // Dark slot
+        }));
+
+        let nextSlot = 0;
+        for (const entry of state.entries) {
+          const dur = Number(entry.hours) || 1;
+          const start = entry.startHour !== 'auto' && entry.startHour !== undefined ? Number(entry.startHour) % 24 : nextSlot;
+          const color = CATEGORIES[entry.category]?.color || '#94a3b8';
+
+          for (let h = 0; h < Math.ceil(dur); h++) {
+            const idx = (start + h) % 24;
+            slots[idx] = {
+              hour: idx,
+              category: entry.category,
+              note: entry.note || '',
+              color: color
+            };
+          }
+          nextSlot = (start + Math.ceil(dur)) % 24;
+        }
+
+        // Draw 24 wedge arcs
+        slots.forEach((slot, i) => {
+          const startAngle = i * 15 + 0.8;
+          const endAngle = (i + 1) * 15 - 0.8;
+          const d = describeArc(160, 160, 92, 138, startAngle, endAngle);
+
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', d);
+          path.setAttribute('class', 'dial-segment');
+          path.setAttribute('fill', slot.color);
+
+          path.addEventListener('mouseenter', (evt) => {
+            const tip = document.getElementById('dialTooltip');
+            if (tip) {
+              const hStr = `${String(slot.hour).padStart(2,'0')}:00 – ${String((slot.hour+1)%24).padStart(2,'0')}:00`;
+              tip.textContent = `${hStr} • ${slot.category || 'Open Hour'}${slot.note ? ` (${slot.note})` : ''}`;
+              tip.classList.remove('hidden');
+              tip.style.left = `${evt.offsetX}px`;
+              tip.style.top = `${evt.offsetY - 25}px`;
+            }
+          });
+          path.addEventListener('mouseleave', () => {
+            const tip = document.getElementById('dialTooltip');
+            if (tip) tip.classList.add('hidden');
+          });
+
+          group.appendChild(path);
+        });
+
+        // Update Needle to live time
+        const now = new Date();
+        const hourFraction = now.getHours() + now.getMinutes() / 60;
+        const deg = hourFraction * 15;
+        const needle = document.getElementById('dialNeedle');
+        const tip = document.getElementById('dialNeedleTip');
+        if (needle) needle.setAttribute('transform', `rotate(${deg}, 160, 160)`);
+        if (tip) tip.setAttribute('transform', `rotate(${deg}, 160, 160)`);
+
+        // Hero Stat in center
+        updateHeroStat();
+      }
+
+      function updateHeroStat() {
+        const numEl = document.getElementById('heroStatNumber');
+        const lblEl = document.getElementById('heroStatLabel');
+        const subEl = document.getElementById('heroStatSub');
+
+        const totals = getCategoryTotals();
+        const total = getTotalLogged();
+
+        if (total <= 0) {
+          if (numEl) numEl.textContent = '0h 00m';
+          if (lblEl) lblEl.textContent = 'no time logged';
+          if (subEl) subEl.textContent = '0.0 / 24.0h total';
+          return;
+        }
+
+        let maxCat = 'Sleep';
+        let maxHrs = -1;
+        for (const [c, h] of Object.entries(totals)) {
+          if (h > maxHrs) {
+            maxHrs = h;
+            maxCat = c;
+          }
+        }
+
+        const totalMins = Math.round(maxHrs * 60);
+        const hm = `${Math.floor(totalMins/60)}h ${totalMins%60 < 10 ? '0' : ''}${totalMins%60}m`;
+
+        if (numEl) numEl.textContent = hm;
+        if (lblEl) lblEl.textContent = `on ${maxCat} today`;
+        if (subEl) {
+          const pct = Math.round((maxHrs / total) * 100);
+          subEl.textContent = `${pct}% of logged (${total.toFixed(1)}h total)`;
+        }
+      }
+
+      // Render Donut Chart
+      function renderChart() {
+        const canvas = document.getElementById('donutChartCanvas');
+        if (!canvas || !window.Chart) return;
+        const totals = getCategoryTotals();
+        const labels = Object.keys(CATEGORIES);
+        const data = labels.map(l => totals[l] || 0);
+        const colors = labels.map(l => CATEGORIES[l].color);
+
+        if (donutChart) donutChart.destroy();
+        donutChart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: colors,
+              borderColor: '#0b0f17',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+
+      // Insights Engine
+      function evaluateInsights() {
+        const totals = getCategoryTotals();
+        const total = getTotalLogged();
+        const ideals = state.ideals;
+
+        const card = document.getElementById('insightCardWrapper');
+        const flagPill = document.getElementById('insightFlagPill');
+        const typeBadge = document.getElementById('insightTypeBadge');
+        const bodyText = document.getElementById('insightTextBody');
+        const nudgeText = document.getElementById('insightNudgeText');
+
+        if (!card || !bodyText) return;
+
+        const screens = totals['Screens & Social Media'] || 0;
+        const sleep = totals['Sleep'] || 0;
+        const work = totals['Work / Study'] || 0;
+        const exercise = totals['Exercise'] || 0;
+
+        let isFlag = false;
+        let title = 'Diagnostic Insight';
+        let text = '';
+        let nudge = '';
+
+        if (screens > 0 && sleep > 0 && screens > sleep) {
+          isFlag = true;
+          title = 'Attention Required';
+          text = `You logged ${screens.toFixed(1)}h on screens & social feeds — that is more than your ${sleep.toFixed(1)}h of sleep today.`;
+          nudge = 'Establish a hard device curfew 45 minutes before sleep to restore delta-wave cognitive recovery.';
+        } else if (screens > (ideals['Screens & Social Media'] || 1.5) + 1.0) {
+          isFlag = true;
+          title = 'Screen Limit Exceeded';
+          text = `You budgeted ${(ideals['Screens & Social Media'] || 1.5).toFixed(1)}h for screens today, but logged ${screens.toFixed(1)}h.`;
+          nudge = 'Step away for a 20-minute natural daylight walk before opening your next app.';
+        } else if (sleep > 0 && sleep < 6.0) {
+          isFlag = true;
+          title = 'Sleep Deficit';
+          text = `You operated on only ${sleep.toFixed(1)}h of sleep today. Rest deficit is actively degrading focus.`;
+          nudge = 'Move up your bedtime target by 45 minutes tonight.';
+        } else if (exercise === 0 && total >= 6.0) {
+          isFlag = false;
+          title = 'Movement Opportunity';
+          text = `Zero physical movement logged today across ${total.toFixed(1)}h of active daytime hours.`;
+          nudge = 'A brisk 15-minute mobility stretch will eliminate posture strain and reboot executive function.';
+        } else {
+          isFlag = false;
+          title = 'Focus Balance';
+          text = `Most of your day was allocated to **Work/Study** (${work.toFixed(1)}h) with healthy distribution.`;
+          nudge = 'Maintain this uninterrupted cadence through the rest of the sprint.';
+        }
+
+        if (isFlag) {
+          card.classList.add('border-rose-500/70', 'bg-rose-950/20');
+          flagPill?.classList.remove('hidden');
+          typeBadge.textContent = title;
+          typeBadge.classList.remove('text-accent-indigo');
+          typeBadge.classList.add('text-rose-400');
+        } else {
+          card.classList.remove('border-rose-500/70', 'bg-rose-950/20');
+          flagPill?.classList.add('hidden');
+          typeBadge.textContent = title;
+          typeBadge.classList.remove('text-rose-400');
+          typeBadge.classList.add('text-accent-indigo');
+        }
+
+        bodyText.textContent = text;
+        if (nudgeText) nudgeText.textContent = nudge;
+      }
+
+      // Actual vs Ideal Bars
+      function renderBars() {
+        const totals = getCategoryTotals();
+        const ideals = state.ideals;
+
+        const mapping = [
+          { key: 'Sleep', fill: 'barFill-Sleep', text: 'barText-Sleep', warn: null },
+          { key: 'Work', cat: 'Work / Study', fill: 'barFill-Work', text: 'barText-Work', warn: null },
+          { key: 'Screens', cat: 'Screens & Social Media', fill: 'barFill-Screens', text: 'barText-Screens', warn: 'barWarn-Screens' },
+          { key: 'Exercise', fill: 'barFill-Exercise', text: 'barText-Exercise', warn: null }
+        ];
+
+        mapping.forEach(m => {
+          const catName = m.cat || m.key;
+          const actual = totals[catName] || 0;
+          const ideal = ideals[catName] || 1;
+
+          const textEl = document.getElementById(m.text);
+          const fillEl = document.getElementById(m.fill);
+          const warnEl = m.warn ? document.getElementById(m.warn) : null;
+
+          if (textEl) textEl.textContent = `${actual.toFixed(1)} / ${ideal.toFixed(1)}h`;
+          if (fillEl) {
+            const pct = Math.min(100, (actual / 24) * 100);
+            fillEl.style.width = `${pct}%`;
+          }
+          if (warnEl) {
+            if (actual > ideal) warnEl.classList.remove('hidden');
+            else warnEl.classList.add('hidden');
+          }
+        });
+
+        // Update Legend values & badges
+        document.getElementById('leg-Sleep').textContent = `${(totals['Sleep'] || 0).toFixed(1)}h`;
+        document.getElementById('leg-Work').textContent = `${(totals['Work / Study'] || 0).toFixed(1)}h`;
+        document.getElementById('leg-Screens').textContent = `${(totals['Screens & Social Media'] || 0).toFixed(1)}h`;
+        document.getElementById('leg-Exercise').textContent = `${(totals['Exercise'] || 0).toFixed(1)}h`;
+        document.getElementById('leg-Social').textContent = `${(totals['In-person Social'] || 0).toFixed(1)}h`;
+        document.getElementById('leg-Other').textContent = `${(totals['Other'] || 0).toFixed(1)}h`;
+
+        const total = getTotalLogged();
+        const badgeTotal = document.getElementById('loggedBadgeTotal');
+        if (badgeTotal) badgeTotal.textContent = `${total.toFixed(1)} / 24.0h`;
+      }
+
+      // Logged Entries List
+      function renderLogList() {
+        const list = document.getElementById('activityLogList');
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (state.entries.length === 0) {
+          list.innerHTML = '<p class="text-xs text-slate-500 italic py-2 text-center">No time blocks logged today. Use the form above to add an activity.</p>';
+          return;
+        }
+
+        state.entries.forEach((e, idx) => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between p-2 rounded-xl bg-appDark-850/60 border border-appDark-border/60 text-xs';
+          
+          const color = CATEGORIES[e.category]?.color || '#94a3b8';
+          row.innerHTML = `
+            <div class="flex items-center gap-2 truncate">
+              <span class="w-2 h-2 rounded-full" style="background-color: ${color}"></span>
+              <span class="font-semibold text-slate-200">${e.category}</span>
+              ${e.note ? `<span class="text-slate-400 italic truncate">— ${e.note}</span>` : ''}
+            </div>
+            <div class="flex items-center gap-3 shrink-0 ml-2">
+              <span class="font-mono text-slate-300 font-medium">${Number(e.hours).toFixed(1)}h</span>
+              <button data-idx="${idx}" class="btn-del-entry text-slate-500 hover:text-rose-400 transition" title="Delete">✕</button>
+            </div>
+          `;
+          list.appendChild(row);
+        });
+
+        list.querySelectorAll('.btn-del-entry').forEach(b => {
+          b.addEventListener('click', () => {
+            const i = parseInt(b.getAttribute('data-idx'));
+            state.entries.splice(i, 1);
+            saveState();
+            refreshViews();
+          });
+        });
+      }
+
+      function refreshViews() {
+        renderDayDial();
+        renderChart();
+        evaluateInsights();
+        renderBars();
+        renderLogList();
+      }
+
+      // Clock and Date
+      function updateLiveClock() {
+        const now = new Date();
+        let h = now.getHours();
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        const m = String(now.getMinutes()).padStart(2, '0');
+        
+        const clockEl = document.getElementById('header-clock');
+        const ampmEl = document.getElementById('header-ampm');
+        const dateEl = document.getElementById('header-date');
+        const dockMonth = document.getElementById('dockMonth');
+        const dockDay = document.getElementById('dockDay');
+
+        if (clockEl) clockEl.textContent = `${String(h).padStart(2,'0')}:${m}`;
+        if (ampmEl) ampmEl.textContent = ampm;
+        if (dateEl) {
+          const opt = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+          dateEl.textContent = now.toLocaleDateString('en-US', opt);
+        }
+        if (dockMonth) dockMonth.textContent = now.toLocaleDateString('en-US', { month: 'short' });
+        if (dockDay) dockDay.textContent = String(now.getDate());
+      }
+
+      // Pomodoro Timer Logic
+      let pomodoroSeconds = 25 * 60;
+      let timerActive = false;
+      let timerInterval = null;
+
+      function updateTimerUI() {
+        const display = document.getElementById('timer-display');
+        const toggleBtn = document.getElementById('timer-toggle-btn');
+        const ring = document.getElementById('timer-progress-ring');
+        const navBtn = document.getElementById('nav-btn-timer');
+        const navIcon = document.getElementById('navTimerIcon');
+        const navBeacon = document.getElementById('navTimerBeacon');
+
+        const m = Math.floor(pomodoroSeconds / 60);
+        const s = pomodoroSeconds % 60;
+        const timeFormatted = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+        if (display) display.textContent = timeFormatted;
+        if (ring) {
+          const total = 25 * 60;
+          const offset = 427 - ((total - pomodoroSeconds) / total) * 427;
+          ring.style.strokeDashoffset = offset;
+        }
+
+        if (timerActive) {
+          if (toggleBtn) {
+            toggleBtn.innerHTML = '<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+          }
+          if (navIcon) {
+            navIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+          }
+          if (navBeacon) navBeacon.classList.remove('hidden');
+          if (navBtn) {
+            navBtn.title = `Focus Timer: Running (${timeFormatted}) — Click to Pause`;
+            navBtn.classList.add('bg-gradient-to-tr', 'from-accent-purple', 'to-indigo-600', 'text-white', 'shadow-glow-purple');
+            navBtn.classList.remove('text-slate-400');
+          }
+        } else {
+          if (toggleBtn) {
+            toggleBtn.innerHTML = '<svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+          }
+          if (navIcon) {
+            navIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+          }
+          if (navBeacon) navBeacon.classList.add('hidden');
+          if (navBtn) {
+            navBtn.title = `Focus Timer: Paused (${timeFormatted}) — Click to Start`;
+            navBtn.classList.remove('bg-gradient-to-tr', 'from-accent-purple', 'to-indigo-600', 'text-white', 'shadow-glow-purple');
+            navBtn.classList.add('text-slate-400');
+          }
+        }
+      }
+
+      function toggleTimer(shouldScroll = false) {
+        if (timerActive) {
+          clearInterval(timerInterval);
+          timerActive = false;
+        } else {
+          timerActive = true;
+          timerInterval = setInterval(() => {
+            if (pomodoroSeconds > 0) {
+              pomodoroSeconds--;
+              updateTimerUI();
+            } else {
+              clearInterval(timerInterval);
+              timerActive = false;
+              updateTimerUI();
+              alert('Pomodoro focus block completed! Take a 5-minute break.');
+            }
+          }, 1000);
+        }
+        updateTimerUI();
+
+        if (shouldScroll) {
+          const card = document.getElementById('focusTimerCard');
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('ring-2', 'ring-accent-purple', 'shadow-glow-purple');
+            setTimeout(() => {
+              card.classList.remove('ring-2', 'ring-accent-purple', 'shadow-glow-purple');
+            }, 1800);
+          }
+        }
+      }
+
+      function resetTimer() {
+        clearInterval(timerInterval);
+        timerActive = false;
+        pomodoroSeconds = 25 * 60;
+        updateTimerUI();
+      }
+
+      function setupTimer() {
+        const toggleBtn = document.getElementById('timer-toggle-btn');
+        const resetBtn = document.getElementById('timer-reset-btn');
+        const navBtnTimer = document.getElementById('nav-btn-timer');
+
+        if (toggleBtn) {
+          toggleBtn.addEventListener('click', () => toggleTimer(false));
+        }
+        if (resetBtn) {
+          resetBtn.addEventListener('click', resetTimer);
+        }
+        if (navBtnTimer) {
+          navBtnTimer.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveNav('nav-btn-timer');
+            toggleTimer(true); // Toggles timer AND smoothly scrolls to card!
+          });
+        }
+
+        updateTimerUI();
+      }
+
+      // Sidebar Navigation Active Switcher
+      function setActiveNav(btnId) {
+        const navBtns = [
+          'nav-btn-dashboard',
+          'nav-btn-dial',
+          'nav-btn-tasks',
+          'nav-btn-timer',
+          'nav-btn-music'
+        ];
+        navBtns.forEach(id => {
+          const btn = document.getElementById(id);
+          if (!btn) return;
+          const indicator = btn.querySelector('.active-indicator');
+          if (id === btnId) {
+            btn.classList.add('bg-gradient-to-tr', 'from-accent-purple', 'to-indigo-600', 'text-white', 'shadow-glow-purple', 'scale-105');
+            btn.classList.remove('text-slate-400');
+            if (indicator) indicator.classList.remove('hidden');
+          } else {
+            if (id === 'nav-btn-timer' && timerActive) {
+              // Keep timer running glow if active
+              btn.classList.add('bg-gradient-to-tr', 'from-accent-purple', 'to-indigo-600', 'text-white', 'shadow-glow-purple');
+              btn.classList.remove('text-slate-400');
+            } else {
+              btn.classList.remove('bg-gradient-to-tr', 'from-accent-purple', 'to-indigo-600', 'text-white', 'shadow-glow-purple', 'scale-105');
+              btn.classList.add('text-slate-400');
+            }
+            if (indicator) indicator.classList.add('hidden');
+          }
+        });
+      }
+
+      // Music Player & YouTube Audio Streaming Engine
+      function setupMusic() {
+        const audioEl = document.getElementById('realAudioPlayer');
+        const fileInput = document.getElementById('musicFileInput');
+        const btnUpload = document.getElementById('btnUploadMusic');
+        const btnPlay = document.getElementById('btnMusicPlay');
+        const playIcon = document.getElementById('musicPlayIcon');
+        const btnPrev = document.getElementById('btnMusicPrev');
+        const btnNext = document.getElementById('btnMusicNext');
+        const statusText = document.getElementById('musicStatusText');
+        const trackTitle = document.getElementById('musicTrackTitle');
+        const trackSubtitle = document.getElementById('musicTrackSubtitle');
+        const timeCurrent = document.getElementById('musicTimeCurrent');
+        const timeDuration = document.getElementById('musicTimeDuration');
+        const progressBar = document.getElementById('musicProgressBar');
+        const volumeSlider = document.getElementById('musicVolumeSlider');
+        const btnMute = document.getElementById('btnMuteToggle');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const waveformBars = document.getElementById('waveformBars');
+        const musicCard = document.getElementById('musicPlayerCard');
+        const musicIconContainer = document.getElementById('musicPlayerIconContainer');
+        const musicSourceBadge = document.getElementById('musicSourceBadge');
+        const musicLiveBadge = document.getElementById('musicLiveBadge');
+        const navMusicBeacon = document.getElementById('navMusicBeacon');
+        const navBtnMusic = document.getElementById('nav-btn-music');
+
+        // YouTube Specific Elements
+        const btnToggleYtSearch = document.getElementById('btnToggleYtSearch');
+        const ytSearchDrawer = document.getElementById('ytSearchDrawer');
+        const ytSearchForm = document.getElementById('ytSearchForm');
+        const ytSearchInput = document.getElementById('ytSearchInput');
+        const btnClearYtInput = document.getElementById('btnClearYtInput');
+        const ytSuggestionsDropdown = document.getElementById('ytSuggestionsDropdown');
+        const ytPlayerContainer = document.getElementById('ytPlayerContainer');
+        const ytIframe = document.getElementById('ytIframePlayer');
+        const btnToggleVideo = document.getElementById('btnToggleVideoDisplay');
+        const btnShowVideoMini = document.getElementById('btnShowVideoMini');
+        const btnYtOpenExternal = document.getElementById('btnYtOpenExternal');
+        const btnResetToSynth = document.getElementById('btnResetToSynth');
+        const ytSearchResults = document.getElementById('ytSearchResults');
+        const ytUnmuteNotice = document.getElementById('ytUnmuteNotice');
+
+        // Curated Focus Stations
+        const focusPresets = [
+          { query: 'Lofi hip hop radio beats to relax study to', videoId: 'jfKfPfyJRdk', title: 'Lofi Girl • Study Beats' },
+          { query: 'Synthwave chill radio focus coding', videoId: '4xDzrJKXOOY', title: 'Synthwave Radio • Retro Chill' },
+          { query: 'Deep focus ambient piano study music', videoId: 'DWcJFNfaw90', title: 'Deep Focus • Ambient Piano' },
+          { query: 'Gentle rain sounds for sleeping and studying', videoId: 'mPZkdNFkNps', title: 'Rain Sounds • Cozy Thunder' },
+          { query: 'Tokyo jazz cafe chill study', videoId: 'Dx5qFachd3A', title: 'Tokyo Jazz Cafe • Warm Lounge' },
+          { query: 'Cyberpunk dark ambient study music', videoId: 'sF9qIb8XhFk', title: 'Cyberpunk • Deep Flow State' }
+        ];
+
+        let playlist = [
+          {
+            name: 'Lo-Fi Beats • Ambient Wave',
+            subtitle: 'Default Focus Drone • Synthesized',
+            url: null,
+            isSynthetic: true
+          }
+        ];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let currentMode = 'synth'; // 'synth' | 'local' | 'youtube'
+        let currentYtPresetIndex = 0;
+        let isVideoHidden = false;
+
+        // Web Audio API ambient drone synthesizer for offline/local focus
+        let audioCtx = null;
+        let osc1 = null, osc2 = null, gainNode = null, filterNode = null;
+
+        function startSynthAudio() {
+          try {
+            if (!audioCtx) {
+              const AudioContext = window.AudioContext || window.webkitAudioContext;
+              if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+              audioCtx.resume();
+            }
+            stopSynthAudio();
+
+            if (audioCtx) {
+              // Binaural ambient focus drone (root 216Hz + 224Hz for 8Hz alpha wave)
+              osc1 = audioCtx.createOscillator();
+              osc2 = audioCtx.createOscillator();
+              gainNode = audioCtx.createGain();
+              filterNode = audioCtx.createBiquadFilter();
+
+              osc1.type = 'sine';
+              osc1.frequency.setValueAtTime(216, audioCtx.currentTime);
+
+              osc2.type = 'triangle';
+              osc2.frequency.setValueAtTime(224, audioCtx.currentTime);
+
+              filterNode.type = 'lowpass';
+              filterNode.frequency.setValueAtTime(420, audioCtx.currentTime);
+
+              const vol = volumeSlider ? parseFloat(volumeSlider.value) : 0.7;
+              gainNode.gain.setValueAtTime(vol * 0.12, audioCtx.currentTime);
+
+              osc1.connect(filterNode);
+              osc2.connect(filterNode);
+              filterNode.connect(gainNode);
+              gainNode.connect(audioCtx.destination);
+
+              osc1.start();
+              osc2.start();
+            }
+          } catch(e) {
+            console.warn('Web Audio synth could not start:', e);
+          }
+        }
+
+        function stopSynthAudio() {
+          if (osc1) {
+            try { osc1.stop(); osc1.disconnect(); } catch(e) {}
+            osc1 = null;
+          }
+          if (osc2) {
+            try { osc2.stop(); osc2.disconnect(); } catch(e) {}
+            osc2 = null;
+          }
+        }
+
+        function formatSeconds(sec) {
+          if (isNaN(sec) || sec < 0) return '00:00';
+          const m = Math.floor(sec / 60);
+          const s = Math.floor(sec % 60);
+          return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        // PostMessage helper to control YouTube iframe
+        function postToYt(func, args = []) {
+          if (ytIframe && ytIframe.contentWindow) {
+            try {
+              ytIframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: func,
+                args: args
+              }), '*');
+            } catch(e) {}
+          }
+        }
+
+        // Extract YouTube video ID from URL or raw ID
+        function extractYouTubeVideoId(input) {
+          if (!input) return null;
+          input = input.trim();
+          const regExp = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|live\/|shorts\/))([\w-]{11})/;
+          const match = input.match(regExp);
+          if (match && match[1]) return match[1];
+          if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+          return null;
+        }
+
+        // Play YouTube Video by exact ID
+        function playVideoById(videoId, displayTitle = null, channelName = null) {
+          if (!videoId) return;
+
+          // 1. Pause HTML5 audio and synthesizer
+          if (audioEl) {
+            audioEl.pause();
+            audioEl.currentTime = 0;
+          }
+          stopSynthAudio();
+
+          currentMode = 'youtube';
+          isPlaying = true;
+
+          // 2. Set embed URL without strict origin parameter that can cause rejection
+          const embedSrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1&rel=0`;
+          if (ytIframe) {
+            ytIframe.src = embedSrc;
+          }
+
+          if (ytPlayerContainer) {
+            if (!isVideoHidden) {
+              ytPlayerContainer.classList.remove('hidden');
+              if (btnShowVideoMini) btnShowVideoMini.classList.add('hidden');
+            } else {
+              ytPlayerContainer.classList.add('hidden');
+              if (btnShowVideoMini) btnShowVideoMini.classList.remove('hidden');
+            }
+          }
+
+          if (btnYtOpenExternal) {
+            btnYtOpenExternal.href = `https://www.youtube.com/watch?v=${videoId}`;
+            btnYtOpenExternal.classList.remove('hidden');
+          }
+
+          // 3. Update labels & UI indicators
+          const title = displayTitle || `Track (${videoId})`;
+          if (trackTitle) {
+            trackTitle.textContent = title;
+            trackTitle.title = title;
+          }
+          if (trackSubtitle) {
+            trackSubtitle.textContent = channelName ? `${channelName} • YouTube Stream` : 'YouTube Audio Stream • Focus Mode';
+          }
+          if (musicSourceBadge) {
+            musicSourceBadge.textContent = 'YouTube Audio Stream';
+            musicSourceBadge.className = 'text-[10px] font-bold uppercase tracking-wider text-red-400 block';
+          }
+          if (musicLiveBadge) musicLiveBadge.classList.remove('hidden');
+          if (navMusicBeacon) navMusicBeacon.classList.remove('hidden');
+          if (btnResetToSynth) btnResetToSynth.classList.remove('hidden');
+          if (statusText) statusText.textContent = 'Playing';
+          if (playIcon) playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+          if (waveformBars) waveformBars.classList.remove('opacity-20');
+          if (timeCurrent) timeCurrent.textContent = 'Live';
+          if (timeDuration) timeDuration.textContent = 'Stream';
+          if (progressBar) progressBar.value = 100;
+
+          // Glowing rose/red icon container
+          if (musicIconContainer) {
+            musicIconContainer.className = 'w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-700 flex items-center justify-center text-white shadow-glow-rose shrink-0 transition-all duration-300';
+          }
+
+          // Show tap to start sound banner if browser requires explicit user click
+          if (ytUnmuteNotice) {
+            ytUnmuteNotice.classList.remove('hidden');
+            setTimeout(() => {
+              if (ytUnmuteNotice) ytUnmuteNotice.classList.add('hidden');
+            }, 6000);
+          }
+
+          // Sync volume and trigger playback
+          const v = volumeSlider ? parseFloat(volumeSlider.value) : 0.7;
+          setTimeout(() => {
+            postToYt('unMute');
+            postToYt('setVolume', [Math.round(v * 100)]);
+            postToYt('playVideo');
+          }, 600);
+
+          if (ytSuggestionsDropdown) ytSuggestionsDropdown.classList.add('hidden');
+        }
+
+        // Search YouTube and automatically stream top matching video
+        async function searchAndPlay(query) {
+          if (!query || !query.trim()) return;
+          query = query.trim();
+
+          // If user pasted a direct video ID or YouTube URL
+          const directId = extractYouTubeVideoId(query);
+          if (directId) {
+            playVideoById(directId, `YouTube Track (${directId})`);
+            return;
+          }
+
+          if (statusText) statusText.textContent = 'Searching...';
+          if (trackTitle) trackTitle.textContent = `Searching: "${query}"...`;
+          if (trackSubtitle) trackSubtitle.textContent = 'Connecting to YouTube search engine...';
+          if (waveformBars) waveformBars.classList.remove('opacity-20');
+
+          try {
+            const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error('Search API returned error');
+            const data = await res.json();
+            const results = data.results || [];
+
+            if (results.length > 0) {
+              const top = results[0];
+              playVideoById(top.id, top.title, top.channel);
+              renderSearchResults(results);
+            } else {
+              // Try fallback to preset or default stream
+              const match = focusPresets.find(p => p.query.toLowerCase().includes(query.toLowerCase()) || p.title.toLowerCase().includes(query.toLowerCase()));
+              if (match) {
+                playVideoById(match.videoId, match.title);
+              } else {
+                playVideoById('jfKfPfyJRdk', `Lofi Beats: "${query}"`);
+              }
+            }
+          } catch(err) {
+            console.warn('Local search API failed, falling back:', err);
+            const match = focusPresets.find(p => p.query.toLowerCase().includes(query.toLowerCase()) || p.title.toLowerCase().includes(query.toLowerCase()));
+            if (match) {
+              playVideoById(match.videoId, match.title);
+            } else {
+              playVideoById('jfKfPfyJRdk', `Lofi Focus: "${query}"`);
+            }
+          }
+        }
+
+        // Render Search Result Cards
+        function renderSearchResults(results) {
+          if (!ytSearchResults) return;
+          if (!results || results.length === 0) {
+            ytSearchResults.classList.add('hidden');
+            ytSearchResults.innerHTML = '';
+            return;
+          }
+
+          ytSearchResults.innerHTML = `
+            <div class="flex items-center justify-between text-[11px] text-slate-300 font-semibold mb-1">
+              <span>Matching YouTube Songs:</span>
+              <button id="btnCloseYtResults" type="button" class="text-[10px] text-slate-400 hover:text-white transition">✕ Close</button>
+            </div>
+          ` + results.map(item => `
+            <div class="yt-result-item flex items-center justify-between p-2 rounded-xl bg-appDark-850 hover:bg-slate-700/60 border border-slate-700/40 hover:border-red-500/60 transition cursor-pointer group" data-videoid="${item.id}" data-title="${item.title.replace(/"/g, '&quot;')}" data-channel="${(item.channel || '').replace(/"/g, '&quot;')}">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="relative w-14 h-9 rounded-lg overflow-hidden bg-black shrink-0">
+                  <img src="${item.thumbnail}" class="w-full h-full object-cover" alt="" onerror="this.src='https://img.youtube.com/vi/${item.id}/hqdefault.jpg'"/>
+                  <span class="absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded bg-black/80 text-[8px] font-mono text-white">${item.duration || ''}</span>
+                </div>
+                <div class="min-w-0">
+                  <h4 class="text-xs font-semibold text-white group-hover:text-red-400 truncate leading-tight">${item.title}</h4>
+                  <p class="text-[10px] text-slate-400 truncate mt-0.5">${item.channel || 'YouTube'}</p>
+                </div>
+              </div>
+              <button type="button" class="px-2.5 py-1 rounded-lg bg-red-600/80 group-hover:bg-red-500 text-white text-[11px] font-semibold flex items-center gap-1 shrink-0 ml-2 shadow transition">
+                <span>Play ▶</span>
+              </button>
+            </div>
+          `).join('');
+
+          ytSearchResults.classList.remove('hidden');
+
+          const closeBtn = document.getElementById('btnCloseYtResults');
+          if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+              ytSearchResults.classList.add('hidden');
+            });
+          }
+
+          ytSearchResults.querySelectorAll('.yt-result-item').forEach(el => {
+            el.addEventListener('click', () => {
+              const vid = el.getAttribute('data-videoid');
+              const title = el.getAttribute('data-title');
+              const channel = el.getAttribute('data-channel');
+              playVideoById(vid, title, channel);
+            });
+          });
+        }
+
+        // Return to Built-in Synth Drone
+        function switchToSynth() {
+          currentMode = 'synth';
+          if (ytIframe) ytIframe.src = '';
+          if (ytPlayerContainer) ytPlayerContainer.classList.add('hidden');
+          if (btnShowVideoMini) btnShowVideoMini.classList.add('hidden');
+          if (musicLiveBadge) musicLiveBadge.classList.add('hidden');
+          if (navMusicBeacon) navMusicBeacon.classList.add('hidden');
+          if (btnResetToSynth) btnResetToSynth.classList.add('hidden');
+          if (btnYtOpenExternal) btnYtOpenExternal.classList.add('hidden');
+          if (ytSearchResults) ytSearchResults.classList.add('hidden');
+          if (ytUnmuteNotice) ytUnmuteNotice.classList.add('hidden');
+
+          if (musicIconContainer) {
+            musicIconContainer.className = 'w-12 h-12 rounded-2xl bg-gradient-to-tr from-accent-purple to-indigo-700 flex items-center justify-center text-white shadow-glow-purple shrink-0 transition-all duration-300';
+          }
+          if (musicSourceBadge) {
+            musicSourceBadge.textContent = 'Focus Audio Player';
+            musicSourceBadge.className = 'text-[10px] font-bold uppercase tracking-wider text-accent-indigo block';
+          }
+
+          currentIndex = 0;
+          loadTrack(0, isPlaying);
+        }
+
+        function loadTrack(index, autoPlay = true) {
+          if (index < 0) index = playlist.length - 1;
+          if (index >= playlist.length) index = 0;
+          currentIndex = index;
+          const track = playlist[currentIndex];
+
+          if (trackTitle) {
+            trackTitle.textContent = track.name;
+            trackTitle.title = track.name;
+          }
+          if (trackSubtitle) trackSubtitle.textContent = track.subtitle;
+
+          if (track.isSynthetic) {
+            currentMode = 'synth';
+            if (audioEl) {
+              audioEl.pause();
+              audioEl.src = '';
+            }
+            if (progressBar) progressBar.value = 0;
+            if (timeCurrent) timeCurrent.textContent = '00:00';
+            if (timeDuration) timeDuration.textContent = 'Loop';
+            if (autoPlay && isPlaying) {
+              startSynthAudio();
+            }
+          } else {
+            currentMode = 'local';
+            stopSynthAudio();
+            if (audioEl) {
+              audioEl.src = track.url;
+              audioEl.load();
+              if (autoPlay && isPlaying) {
+                audioEl.play().catch(e => console.log('Playback error:', e));
+              }
+            }
+          }
+        }
+
+        function play() {
+          isPlaying = true;
+          if (currentMode === 'youtube') {
+            postToYt('playVideo');
+            if (statusText) statusText.textContent = 'Playing';
+            if (navMusicBeacon) navMusicBeacon.classList.remove('hidden');
+          } else if (currentMode === 'synth') {
+            startSynthAudio();
+            if (statusText) statusText.textContent = 'Playing';
+          } else if (currentMode === 'local' && audioEl) {
+            audioEl.play().catch(e => console.log('Audio playback error:', e));
+            if (statusText) statusText.textContent = 'Playing';
+          }
+
+          if (playIcon) playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+          if (waveformBars) waveformBars.classList.remove('opacity-20');
+        }
+
+        function pause() {
+          isPlaying = false;
+          if (currentMode === 'youtube') {
+            postToYt('pauseVideo');
+            if (statusText) statusText.textContent = 'Paused';
+            if (navMusicBeacon) navMusicBeacon.classList.add('hidden');
+          } else if (currentMode === 'synth') {
+            stopSynthAudio();
+            if (statusText) statusText.textContent = 'Paused';
+          } else if (currentMode === 'local' && audioEl) {
+            audioEl.pause();
+            if (statusText) statusText.textContent = 'Paused';
+          }
+
+          if (playIcon) playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+          if (waveformBars) waveformBars.classList.add('opacity-20');
+        }
+
+        function togglePlay() {
+          if (isPlaying) {
+            pause();
+          } else {
+            play();
+          }
+        }
+
+        // YouTube Bidirectional Event Listener
+        window.addEventListener('message', (event) => {
+          if (currentMode !== 'youtube') return;
+          try {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (data && data.event === 'infoDelivery' && data.info) {
+              // Player State
+              if (typeof data.info.playerState !== 'undefined') {
+                const state = data.info.playerState;
+                if (state === 1) { // Playing
+                  isPlaying = true;
+                  if (playIcon) playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+                  if (statusText) statusText.textContent = 'Playing';
+                  if (waveformBars) waveformBars.classList.remove('opacity-20');
+                  if (navMusicBeacon) navMusicBeacon.classList.remove('hidden');
+                } else if (state === 2) { // Paused
+                  isPlaying = false;
+                  if (playIcon) playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+                  if (statusText) statusText.textContent = 'Paused';
+                  if (waveformBars) waveformBars.classList.add('opacity-20');
+                  if (navMusicBeacon) navMusicBeacon.classList.add('hidden');
+                } else if (state === 3) { // Buffering
+                  if (statusText) statusText.textContent = 'Buffering';
+                }
+              }
+
+              // Update title from YouTube metadata
+              if (data.info.videoData && data.info.videoData.title && !data.info.videoData.title.includes('YouTube')) {
+                if (trackTitle) {
+                  trackTitle.textContent = data.info.videoData.title;
+                  trackTitle.title = data.info.videoData.title;
+                }
+              }
+
+              // Duration & Current Time sync
+              if (typeof data.info.currentTime !== 'undefined' && typeof data.info.duration !== 'undefined') {
+                if (data.info.duration > 0) {
+                  if (timeCurrent) timeCurrent.textContent = formatSeconds(data.info.currentTime);
+                  if (timeDuration) timeDuration.textContent = formatSeconds(data.info.duration);
+                  if (progressBar && !progressBar.matches(':active')) {
+                    progressBar.value = (data.info.currentTime / data.info.duration) * 100;
+                  }
+                }
+              }
+            }
+          } catch(e) {}
+        });
+
+        // YouTube Autocomplete Suggestions via JSONP
+        let suggestScript = null;
+        let suggestDebounce = null;
+
+        window.handleYtSuggestions = function(data) {
+          if (!data || !data[1] || !ytSuggestionsDropdown) return;
+          const items = data[1].map(item => Array.isArray(item) ? item[0] : item).slice(0, 5);
+          if (items.length === 0) {
+            ytSuggestionsDropdown.classList.add('hidden');
+            return;
+          }
+          ytSuggestionsDropdown.innerHTML = items.map(q => `
+            <div class="yt-suggest-item px-3 py-2 text-xs text-slate-200 hover:bg-appDark-750 hover:text-white cursor-pointer flex items-center gap-2 transition" data-query="${q.replace(/"/g, '&quot;')}">
+              <svg class="w-3 h-3 text-red-500 shrink-0 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+              <span class="truncate">${q}</span>
+            </div>
+          `).join('');
+          ytSuggestionsDropdown.classList.remove('hidden');
+
+          ytSuggestionsDropdown.querySelectorAll('.yt-suggest-item').forEach(el => {
+            el.addEventListener('click', () => {
+              const q = el.getAttribute('data-query');
+              if (ytSearchInput) ytSearchInput.value = q;
+              if (btnClearYtInput) btnClearYtInput.classList.remove('hidden');
+              ytSuggestionsDropdown.classList.add('hidden');
+              searchAndPlay(q);
+            });
+          });
+        };
+
+        if (ytSearchInput) {
+          ytSearchInput.addEventListener('input', () => {
+            const val = ytSearchInput.value.trim();
+            if (btnClearYtInput) {
+              if (val.length > 0) btnClearYtInput.classList.remove('hidden');
+              else btnClearYtInput.classList.add('hidden');
+            }
+            clearTimeout(suggestDebounce);
+            if (val.length < 2) {
+              if (ytSuggestionsDropdown) ytSuggestionsDropdown.classList.add('hidden');
+              return;
+            }
+            suggestDebounce = setTimeout(() => {
+              if (suggestScript) suggestScript.remove();
+              suggestScript = document.createElement('script');
+              suggestScript.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(val)}&callback=handleYtSuggestions`;
+              document.body.appendChild(suggestScript);
+            }, 220);
+          });
+
+          // Close suggestions on outside click
+          document.addEventListener('click', (e) => {
+            if (ytSuggestionsDropdown && !ytSuggestionsDropdown.contains(e.target) && e.target !== ytSearchInput) {
+              ytSuggestionsDropdown.classList.add('hidden');
+            }
+          });
+        }
+
+        // Clear Search Input Button
+        if (btnClearYtInput && ytSearchInput) {
+          btnClearYtInput.addEventListener('click', () => {
+            ytSearchInput.value = '';
+            btnClearYtInput.classList.add('hidden');
+            if (ytSuggestionsDropdown) ytSuggestionsDropdown.classList.add('hidden');
+            ytSearchInput.focus();
+          });
+        }
+
+        // YouTube Search Form Submission
+        if (ytSearchForm && ytSearchInput) {
+          ytSearchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const q = ytSearchInput.value.trim();
+            if (!q) return;
+            searchAndPlay(q);
+          });
+        }
+
+        // Toggle YouTube Search Button
+        if (btnToggleYtSearch && ytSearchInput) {
+          btnToggleYtSearch.addEventListener('click', () => {
+            ytSearchInput.focus();
+            ytSearchInput.select();
+            musicCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            musicCard.classList.add('ring-2', 'ring-red-500/80', 'shadow-glow-rose');
+            setTimeout(() => {
+              musicCard.classList.remove('ring-2', 'ring-red-500/80', 'shadow-glow-rose');
+            }, 1200);
+          });
+        }
+
+        // Focus Preset Buttons
+        document.querySelectorAll('.yt-preset-btn').forEach((btn, idx) => {
+          btn.addEventListener('click', () => {
+            currentYtPresetIndex = idx;
+            const q = btn.getAttribute('data-query');
+            const vid = btn.getAttribute('data-videoid');
+            const title = btn.getAttribute('data-title');
+            if (ytSearchInput) ytSearchInput.value = title || q;
+            if (btnClearYtInput) btnClearYtInput.classList.remove('hidden');
+            playVideoById(vid || q, title || q);
+          });
+        });
+
+        // Video Screen Visibility Toggles
+        if (btnToggleVideo) {
+          btnToggleVideo.addEventListener('click', () => {
+            isVideoHidden = true;
+            if (ytPlayerContainer) ytPlayerContainer.classList.add('hidden');
+            if (btnShowVideoMini) btnShowVideoMini.classList.remove('hidden');
+          });
+        }
+
+        if (btnShowVideoMini) {
+          btnShowVideoMini.addEventListener('click', () => {
+            isVideoHidden = false;
+            if (ytPlayerContainer && currentMode === 'youtube') ytPlayerContainer.classList.remove('hidden');
+            btnShowVideoMini.classList.add('hidden');
+          });
+        }
+
+        // Return to Built-in Drone link
+        if (btnResetToSynth) {
+          btnResetToSynth.addEventListener('click', () => {
+            switchToSynth();
+          });
+        }
+
+        // File Input Trigger & Handler
+        if (btnUpload && fileInput) {
+          btnUpload.addEventListener('click', () => {
+            fileInput.click();
+          });
+
+          fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (!files || files.length === 0) return;
+
+            // Pause YouTube when uploading local files
+            if (currentMode === 'youtube') {
+              postToYt('pauseVideo');
+              if (ytPlayerContainer) ytPlayerContainer.classList.add('hidden');
+              if (musicLiveBadge) musicLiveBadge.classList.add('hidden');
+              if (navMusicBeacon) navMusicBeacon.classList.add('hidden');
+            }
+
+            files.forEach(file => {
+              const objUrl = URL.createObjectURL(file);
+              const customTrack = {
+                name: file.name,
+                subtitle: `Local Audio File • ${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+                url: objUrl,
+                isSynthetic: false
+              };
+              playlist.push(customTrack);
+            });
+
+            if (musicSourceBadge) {
+              musicSourceBadge.textContent = 'Local Audio Player';
+              musicSourceBadge.className = 'text-[10px] font-bold uppercase tracking-wider text-accent-indigo block';
+            }
+            if (btnResetToSynth) btnResetToSynth.classList.remove('hidden');
+
+            currentIndex = playlist.length - 1;
+            loadTrack(currentIndex, true);
+            play();
+          });
+        }
+
+        // Drag & Drop on the Music Player Card
+        if (musicCard) {
+          musicCard.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            musicCard.classList.add('ring-2', 'ring-accent-purple', 'shadow-glow-purple');
+          });
+          musicCard.addEventListener('dragleave', () => {
+            musicCard.classList.remove('ring-2', 'ring-accent-purple', 'shadow-glow-purple');
+          });
+          musicCard.addEventListener('drop', (e) => {
+            e.preventDefault();
+            musicCard.classList.remove('ring-2', 'ring-accent-purple', 'shadow-glow-purple');
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(f.name));
+              if (files.length > 0) {
+                if (currentMode === 'youtube') {
+                  postToYt('pauseVideo');
+                  if (ytPlayerContainer) ytPlayerContainer.classList.add('hidden');
+                  if (musicLiveBadge) musicLiveBadge.classList.add('hidden');
+                  if (navMusicBeacon) navMusicBeacon.classList.add('hidden');
+                }
+                files.forEach(file => {
+                  playlist.push({
+                    name: file.name,
+                    subtitle: `Local Audio File • ${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+                    url: URL.createObjectURL(file),
+                    isSynthetic: false
+                  });
+                });
+                if (musicSourceBadge) {
+                  musicSourceBadge.textContent = 'Local Audio Player';
+                  musicSourceBadge.className = 'text-[10px] font-bold uppercase tracking-wider text-accent-indigo block';
+                }
+                if (btnResetToSynth) btnResetToSynth.classList.remove('hidden');
+                currentIndex = playlist.length - 1;
+                loadTrack(currentIndex, true);
+                play();
+              }
+            }
+          });
+        }
+
+        // Audio Playback Events for HTML5 audio
+        if (audioEl) {
+          audioEl.addEventListener('timeupdate', () => {
+            if (currentMode === 'local' && audioEl.duration && progressBar && !progressBar.matches(':active')) {
+              const pct = (audioEl.currentTime / audioEl.duration) * 100;
+              progressBar.value = pct;
+              if (timeCurrent) timeCurrent.textContent = formatSeconds(audioEl.currentTime);
+              if (timeDuration) timeDuration.textContent = formatSeconds(audioEl.duration);
+            }
+          });
+
+          audioEl.addEventListener('loadedmetadata', () => {
+            if (currentMode === 'local' && timeDuration) {
+              timeDuration.textContent = formatSeconds(audioEl.duration);
+            }
+          });
+
+          audioEl.addEventListener('ended', () => {
+            loadTrack(currentIndex + 1, true);
+            play();
+          });
+        }
+
+        // Timeline Scrubbing
+        if (progressBar) {
+          progressBar.addEventListener('input', () => {
+            if (currentMode === 'local' && audioEl && audioEl.duration) {
+              const seekTime = (progressBar.value / 100) * audioEl.duration;
+              audioEl.currentTime = seekTime;
+              if (timeCurrent) timeCurrent.textContent = formatSeconds(seekTime);
+            } else if (currentMode === 'youtube') {
+              postToYt('seekTo', [(progressBar.value / 100) * 1000, true]);
+            }
+          });
+        }
+
+        // Volume Control
+        if (volumeSlider) {
+          volumeSlider.addEventListener('input', () => {
+            const v = parseFloat(volumeSlider.value);
+            if (audioEl) audioEl.volume = v;
+            if (gainNode && audioCtx) {
+              gainNode.gain.setValueAtTime(v * 0.12, audioCtx.currentTime);
+            }
+            if (currentMode === 'youtube') {
+              postToYt('setVolume', [Math.round(v * 100)]);
+            }
+            if (v === 0) {
+              if (volumeIcon) volumeIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
+            } else {
+              if (volumeIcon) volumeIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
+            }
+          });
+        }
+
+        // Mute / Unmute Button
+        if (btnMute) {
+          let prevVolume = 0.7;
+          btnMute.addEventListener('click', () => {
+            const currentVol = volumeSlider ? parseFloat(volumeSlider.value) : 0.7;
+            if (currentVol > 0) {
+              prevVolume = currentVol;
+              if (volumeSlider) volumeSlider.value = 0;
+              if (audioEl) audioEl.volume = 0;
+              if (gainNode && audioCtx) gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+              if (currentMode === 'youtube') postToYt('mute');
+              if (volumeIcon) volumeIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
+            } else {
+              const restore = prevVolume || 0.7;
+              if (volumeSlider) volumeSlider.value = restore;
+              if (audioEl) audioEl.volume = restore;
+              if (gainNode && audioCtx) gainNode.gain.setValueAtTime(restore * 0.12, audioCtx.currentTime);
+              if (currentMode === 'youtube') {
+                postToYt('unMute');
+                postToYt('setVolume', [Math.round(restore * 100)]);
+              }
+              if (volumeIcon) volumeIcon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
+            }
+          });
+        }
+
+        // Previous & Next Track
+        if (btnPrev) {
+          btnPrev.addEventListener('click', () => {
+            if (currentMode === 'youtube') {
+              currentYtPresetIndex = (currentYtPresetIndex - 1 + focusPresets.length) % focusPresets.length;
+              const p = focusPresets[currentYtPresetIndex];
+              if (ytSearchInput) ytSearchInput.value = p.title;
+              playVideoById(p.videoId || p.query, p.title);
+            } else {
+              loadTrack(currentIndex - 1, true);
+              play();
+            }
+          });
+        }
+
+        if (btnNext) {
+          btnNext.addEventListener('click', () => {
+            if (currentMode === 'youtube') {
+              currentYtPresetIndex = (currentYtPresetIndex + 1) % focusPresets.length;
+              const p = focusPresets[currentYtPresetIndex];
+              if (ytSearchInput) ytSearchInput.value = p.title;
+              playVideoById(p.videoId || p.query, p.title);
+            } else {
+              loadTrack(currentIndex + 1, true);
+              play();
+            }
+          });
+        }
+
+        // Tap to Unmute / Start Audio Notice
+        if (ytUnmuteNotice) {
+          ytUnmuteNotice.addEventListener('click', () => {
+            postToYt('unMute');
+            postToYt('playVideo');
+            postToYt('setVolume', [75]);
+            ytUnmuteNotice.classList.add('hidden');
+          });
+        }
+
+        // Play / Pause Button
+        if (btnPlay) {
+          btnPlay.addEventListener('click', () => {
+            if (ytUnmuteNotice) ytUnmuteNotice.classList.add('hidden');
+            togglePlay();
+          });
+        }
+
+        // Left Sidebar Music Icon button
+        if (navBtnMusic) {
+          navBtnMusic.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveNav('nav-btn-music');
+            if (musicCard) {
+              musicCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              musicCard.classList.add('ring-2', 'ring-red-500', 'shadow-glow-rose');
+              setTimeout(() => {
+                musicCard.classList.remove('ring-2', 'ring-red-500', 'shadow-glow-rose');
+              }, 1200);
+              if (ytSearchInput) ytSearchInput.focus();
+            }
+          });
+        }
+      }
+
+      // Tasks Interactive Logic
+      function setupTasks() {
+        const btn = document.getElementById('btnAddNewTaskPrompt');
+        const container = document.getElementById('tasksContainer');
+
+        if (btn && container) {
+          btn.addEventListener('click', () => {
+            const taskText = prompt('Enter a new high-priority execution task:');
+            if (taskText && taskText.trim()) {
+              const div = document.createElement('div');
+              div.className = 'flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group';
+              div.innerHTML = `
+                <div class="flex items-center gap-3">
+                  <input class="task-checkbox w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+                  <span class="task-label text-xs font-medium text-slate-200 group-hover:text-white">${taskText.trim()}</span>
+                </div>
+                <span class="text-[11px] font-medium text-slate-400">Today</span>
+              `;
+              container.prepend(div);
+              bindCheckbox(div.querySelector('.task-checkbox'));
+            }
+          });
+        }
+
+        function bindCheckbox(cb) {
+          cb.addEventListener('change', () => {
+            const label = cb.parentElement.querySelector('.task-label');
+            if (cb.checked) {
+              label.classList.add('line-through', 'text-slate-400');
+              label.classList.remove('text-slate-200');
+            } else {
+              label.classList.remove('line-through', 'text-slate-400');
+              label.classList.add('text-slate-200');
+            }
+          });
+        }
+
+        document.querySelectorAll('.task-checkbox').forEach(bindCheckbox);
+      }
+
+      // Setup Form & Buttons
+      function setupUI() {
+        // Sidebar Navigation Links
+        const navDashboard = document.getElementById('nav-btn-dashboard');
+        const navDial = document.getElementById('nav-btn-dial');
+        const navTasks = document.getElementById('nav-btn-tasks');
+
+        if (navDashboard) {
+          navDashboard.addEventListener('click', () => {
+            setActiveNav('nav-btn-dashboard');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+        if (navDial) {
+          navDial.addEventListener('click', () => {
+            setActiveNav('nav-btn-dial');
+            const dial = document.getElementById('dayDialCard');
+            if (dial) {
+              dial.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              dial.classList.add('ring-2', 'ring-accent-purple', 'shadow-glow-purple');
+              setTimeout(() => dial.classList.remove('ring-2', 'ring-accent-purple', 'shadow-glow-purple'), 1800);
+            }
+          });
+        }
+        if (navTasks) {
+          navTasks.addEventListener('click', () => {
+            setActiveNav('nav-btn-tasks');
+            const tasks = document.getElementById('tasksWidgetCard');
+            if (tasks) {
+              tasks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              tasks.classList.add('ring-2', 'ring-accent-purple', 'shadow-glow-purple');
+              setTimeout(() => tasks.classList.remove('ring-2', 'ring-accent-purple', 'shadow-glow-purple'), 1800);
+            }
+          });
+        }
+
+        // Form
+        const form = document.getElementById('timeEntryForm');
+        if (form) {
+          form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cat = document.getElementById('inputCategory').value;
+            const hrs = parseFloat(document.getElementById('inputHours').value);
+            const start = document.getElementById('inputStartHour').value;
+            const note = document.getElementById('inputNote').value.trim();
+
+            if (isNaN(hrs) || hrs <= 0) return;
+
+            state.entries.push({
+              id: 'e_' + Date.now(),
+              category: cat,
+              hours: hrs,
+              startHour: start,
+              note: note
+            });
+
+            saveState();
+            refreshViews();
+
+            document.getElementById('inputHours').value = '';
+            document.getElementById('inputNote').value = '';
+          });
+        }
+
+        // Presets
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const key = btn.getAttribute('data-preset');
+            if (PRESETS[key]) {
+              state.entries = JSON.parse(JSON.stringify(PRESETS[key]));
+              saveState();
+              refreshViews();
+            }
+          });
+        });
+
+        // Pitch Demo Button
+        const btnPitch = document.getElementById('btnLoadPitchDemo');
+        if (btnPitch) {
+          btnPitch.addEventListener('click', () => {
+            state.entries = JSON.parse(JSON.stringify(PRESETS.pitch));
+            saveState();
+            refreshViews();
+          });
+        }
+
+        // Reset Day
+        const btnReset = document.getElementById('btnResetDay');
+        if (btnReset) {
+          btnReset.addEventListener('click', () => {
+            if (confirm('Start a fresh new day? This will clear today\'s logs.')) {
+              state.entries = [];
+              saveState();
+              refreshViews();
+            }
+          });
+        }
+
+        // View Toggles
+        const btnDial = document.getElementById('btnToggleDial');
+        const btnChart = document.getElementById('btnToggleChart');
+        const dialBox = document.getElementById('dialContainer');
+        const chartBox = document.getElementById('chartContainer');
+
+        if (btnDial && btnChart) {
+          btnDial.addEventListener('click', () => {
+            btnDial.classList.add('bg-accent-purple', 'text-white');
+            btnDial.classList.remove('text-slate-400');
+            btnChart.classList.remove('bg-accent-purple', 'text-white');
+            btnChart.classList.add('text-slate-400');
+            dialBox.style.display = 'block';
+            chartBox.style.display = 'none';
+          });
+          btnChart.addEventListener('click', () => {
+            btnChart.classList.add('bg-accent-purple', 'text-white');
+            btnChart.classList.remove('text-slate-400');
+            btnDial.classList.remove('bg-accent-purple', 'text-white');
+            btnDial.classList.add('text-slate-400');
+            dialBox.style.display = 'none';
+            chartBox.style.display = 'block';
+            renderChart();
+          });
+        }
+
+        // Settings Modal
+        const btnOpen = document.getElementById('btnOpenSettings');
+        const btnClose = document.getElementById('btnCloseSettings');
+        const modal = document.getElementById('settingsModal');
+        const sForm = document.getElementById('settingsForm');
+
+        if (btnOpen && modal) {
+          btnOpen.addEventListener('click', () => {
+            document.getElementById('targetSleep').value = state.ideals['Sleep'];
+            document.getElementById('targetWork').value = state.ideals['Work / Study'];
+            document.getElementById('targetScreens').value = state.ideals['Screens & Social Media'];
+            document.getElementById('targetExercise').value = state.ideals['Exercise'];
+            modal.classList.remove('hidden');
+          });
+        }
+        if (btnClose && modal) {
+          btnClose.addEventListener('click', () => modal.classList.add('hidden'));
+        }
+        if (sForm) {
+          sForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            state.ideals['Sleep'] = parseFloat(document.getElementById('targetSleep').value) || 8.0;
+            state.ideals['Work / Study'] = parseFloat(document.getElementById('targetWork').value) || 6.0;
+            state.ideals['Screens & Social Media'] = parseFloat(document.getElementById('targetScreens').value) || 1.5;
+            state.ideals['Exercise'] = parseFloat(document.getElementById('targetExercise').value) || 1.0;
+            saveState();
+            modal.classList.add('hidden');
+            refreshViews();
+          });
+        }
+      }
+
+      function init() {
+        loadState();
+        updateLiveClock();
+        setInterval(updateLiveClock, 1000);
+        setupTimer();
+        setupMusic();
+        setupTasks();
+        setupUI();
+        refreshViews();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>

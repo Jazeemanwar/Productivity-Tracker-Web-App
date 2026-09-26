@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nexus Productivity Dashboard</title>
+<!-- Tailwind CSS CDN with Forms & Container Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            appDark: {
+              900: '#07090e',
+              850: '#0b0f17',
+              800: '#111622',
+              700: '#171f2f',
+              600: '#1f2a3e',
+              border: '#1f293d',
+              borderLight: '#2c3a54'
+            },
+            accent: {
+              purple: '#7952f5',
+              indigo: '#6366f1',
+              violet: '#8b5cf6',
+              cyan: '#06b6d4',
+              amber: '#f59e0b',
+              emerald: '#10b981'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+          },
+          boxShadow: {
+            'glow-purple': '0 0 25px -5px rgba(121, 82, 245, 0.45)',
+            'glow-indigo': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
+            'card-glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Core Page Styles -->
+<style data-purpose="base-styling">
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #080a10;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    /* Custom subtle glassmorphism styles */
+    .glass-card {
+      background: linear-gradient(135deg, rgba(17, 22, 34, 0.85) 0%, rgba(13, 17, 28, 0.92) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    
+    .glass-card:hover {
+      border-color: rgba(121, 82, 245, 0.25);
+    }
+
+    /* Custom scrollbar for inner scrollable containers */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(11, 15, 23, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f293d;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #7952f5;
+    }
+
+    /* Audio Equalizer animation */
+    @keyframes bounceBars {
+      0%, 100% { height: 6px; }
+      50% { height: 26px; }
+    }
+    .eq-bar {
+      animation: bounceBars 1.2s ease-in-out infinite;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.15s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.3s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.45s; }
+    .eq-bar:nth-child(5) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(6) { animation-delay: 0.35s; }
+    .eq-bar:nth-child(7) { animation-delay: 0.5s; }
+    .eq-bar:nth-child(8) { animation-delay: 0.1s; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-between selection:bg-accent-purple selection:text-white relative pb-24">
+<!-- Ambient Background Lighting Glows -->
+<div class="fixed top-0 left-1/4 w-96 h-96 bg-purple-700/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<div class="fixed bottom-10 right-10 w-[450px] h-[450px] bg-indigo-600/10 rounded-full blur-[160px] pointer-events-none -z-10"></div>
+<div class="fixed top-1/2 -left-20 w-80 h-80 bg-blue-600/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
+<!-- Main Outer Container -->
+<div class="flex flex-col lg:flex-row min-h-screen w-full max-w-[1520px] mx-auto p-3 sm:p-5 lg:p-7 gap-5 sm:gap-7">
+<!-- BEGIN: LeftSidebarDock -->
+<aside class="w-full lg:w-20 shrink-0 flex lg:flex-col items-center justify-between bg-appDark-850/85 backdrop-blur-xl border border-appDark-border rounded-3xl p-3.5 shadow-2xl z-30" data-purpose="primary-sidebar">
+<!-- Top Window Dot Indicators (macOS style) -->
+<div class="hidden lg:flex items-center gap-1.5 mb-6">
+<span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 hover:opacity-100 transition-opacity cursor-pointer"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 hover:opacity-100 transition-opacity cursor-pointer"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 hover:opacity-100 transition-opacity cursor-pointer"></span>
+</div>
+<!-- Navigation Icon Buttons -->
+<nav class="flex lg:flex-col items-center justify-center gap-3 w-full" data-purpose="sidebar-nav">
+<!-- Active Dashboard Icon with Purple Glow Pill -->
+<button aria-label="Dashboard" class="relative group p-3 rounded-2xl bg-gradient-to-tr from-accent-purple to-indigo-600 text-white shadow-glow-purple transition-all duration-300 transform hover:scale-105" type="button">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path>
+</svg>
+<span class="absolute -right-1 top-2.5 w-1.5 h-1.5 rounded-full bg-white hidden lg:block"></span>
+</button>
+<!-- Calendar Button -->
+<button aria-label="Calendar" class="p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button">
+<svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewbox="0 0 24 24">
+<rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect>
+<line x1="16" x2="16" y1="2" y2="6"></line>
+<line x1="8" x2="8" y1="2" y2="6"></line>
+<line x1="3" x2="21" y1="10" y2="10"></line>
+</svg>
+</button>
+<!-- Tasks / Checklist Button -->
+<button aria-label="Tasks Checklist" class="p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button">
+<svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewbox="0 0 24 24">
+<path d="M9 11l3 3L22 4"></path>
+<path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+</svg>
+</button>
+<!-- Notes Button -->
+<button aria-label="Notes" class="p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button">
+<svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewbox="0 0 24 24">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+<polyline points="14 2 14 8 20 8"></polyline>
+<line x1="16" x2="8" y1="13" y2="13"></line>
+<line x1="16" x2="8" y1="17" y2="17"></line>
+</svg>
+</button>
+<!-- Analytics / Reports Button -->
+<button aria-label="Analytics" class="p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button">
+<svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewbox="0 0 24 24">
+<line x1="18" x2="18" y1="20" y2="10"></line>
+<line x1="12" x2="12" y1="20" y2="4"></line>
+<line x1="6" x2="6" y1="20" y2="14"></line>
+</svg>
+</button>
+<!-- Focus Timer Button -->
+<button aria-label="Timer" class="p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button">
+<svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+</button>
+<!-- Settings Button -->
+<button aria-label="Settings" class="p-3 rounded-2xl text-slate-400 hover:text-white hover:bg-appDark-700/60 transition-all duration-200" type="button">
+<svg class="w-5 h-5 stroke-current fill-none stroke-[2]" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="3"></circle>
+<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+</svg>
+</button>
+</nav>
+<!-- Bottom Dark/Light Mode Switcher Icon -->
+<div class="hidden lg:flex flex-col items-center mt-auto pt-6 border-t border-appDark-border/60 w-full">
+<button aria-label="Toggle Night Mode" class="p-3 text-slate-400 hover:text-amber-300 transition-colors" type="button">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24">
+<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+</svg>
+</button>
+</div>
+</aside>
+<!-- END: LeftSidebarDock -->
+<!-- Main Workspace Area -->
+<main class="flex-1 flex flex-col gap-6" data-purpose="dashboard-main-content">
+<!-- BEGIN: HeaderSection -->
+<header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-1" data-purpose="app-header">
+<!-- Welcome Title & Motto -->
+<div>
+<h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            Good Morning, 
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-purple via-indigo-400 to-accent-violet">Alex</span>
+<span class="inline-block animate-bounce origin-bottom-right">👋</span>
+</h1>
+<p class="text-sm font-medium text-slate-400 mt-1 tracking-wide flex items-center gap-2">
+<span>Focus</span>
+<span class="w-1 h-1 rounded-full bg-slate-600"></span>
+<span>Plan</span>
+<span class="w-1 h-1 rounded-full bg-slate-600"></span>
+<span>Execute</span>
+<span class="w-1 h-1 rounded-full bg-slate-600"></span>
+<span class="text-slate-300">Succeed</span>
+</p>
+</div>
+<!-- Clock & Current Date Widget -->
+<div class="text-left sm:text-right" data-purpose="live-clock-card">
+<div class="text-3xl sm:text-4xl font-extrabold text-white font-mono tracking-tight flex items-baseline sm:justify-end gap-1">
+<span id="header-clock">07:45</span>
+<span class="text-sm font-semibold text-accent-indigo">AM</span>
+</div>
+<p class="text-xs sm:text-sm font-medium text-slate-400 mt-0.5">Tuesday, May 28, 2024</p>
+</div>
+</header>
+<!-- END: HeaderSection -->
+<!-- BEGIN: TopWidgetsGrid -->
+<!-- 3 Columns: Mini Calendar, Today's Schedule, Weather -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5" data-purpose="top-widgets-row">
+<!-- 1. Interactive Mini Calendar (4 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-4 flex flex-col justify-between shadow-lg" data-purpose="calendar-widget">
+<!-- Calendar Title & Month Selector -->
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-400">Calendar</span>
+<div class="flex items-center gap-2">
+<button aria-label="Previous month" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-appDark-700 transition">
+<svg class="w-3.5 h-3.5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg>
+</button>
+<h3 class="text-sm font-bold text-white tracking-wide">May 2024</h3>
+<button aria-label="Next month" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-appDark-700 transition">
+<svg class="w-3.5 h-3.5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
+</button>
+</div>
+</div>
+<!-- Calendar Days Header -->
+<div class="grid grid-cols-7 text-center text-xs font-semibold text-slate-500 mb-2">
+<span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+</div>
+<!-- Dates Grid -->
+<div class="grid grid-cols-7 gap-y-2 text-center text-xs font-medium text-slate-300">
+<span class="text-slate-600">28</span>
+<span class="text-slate-600">29</span>
+<span class="text-slate-600">30</span>
+<span class="hover:text-white cursor-pointer py-1">1</span>
+<span class="hover:text-white cursor-pointer py-1">2</span>
+<span class="hover:text-white cursor-pointer py-1">3</span>
+<span class="hover:text-white cursor-pointer py-1">4</span>
+<span class="hover:text-white cursor-pointer py-1">5</span>
+<span class="hover:text-white cursor-pointer py-1">6</span>
+<span class="hover:text-white cursor-pointer py-1">7</span>
+<span class="hover:text-white cursor-pointer py-1">8</span>
+<span class="hover:text-white cursor-pointer py-1">9</span>
+<span class="hover:text-white cursor-pointer py-1">10</span>
+<span class="hover:text-white cursor-pointer py-1">11</span>
+<span class="hover:text-white cursor-pointer py-1">12</span>
+<span class="hover:text-white cursor-pointer py-1">13</span>
+<span class="hover:text-white cursor-pointer py-1">14</span>
+<span class="hover:text-white cursor-pointer py-1">15</span>
+<span class="hover:text-white cursor-pointer py-1">16</span>
+<span class="hover:text-white cursor-pointer py-1">17</span>
+<span class="hover:text-white cursor-pointer py-1">18</span>
+<span class="hover:text-white cursor-pointer py-1">19</span>
+<span class="hover:text-white cursor-pointer py-1">20</span>
+<span class="hover:text-white cursor-pointer py-1">21</span>
+<span class="hover:text-white cursor-pointer py-1">22</span>
+<span class="hover:text-white cursor-pointer py-1">23</span>
+<span class="hover:text-white cursor-pointer py-1">24</span>
+<span class="hover:text-white cursor-pointer py-1">25</span>
+<span class="hover:text-white cursor-pointer py-1">26</span>
+<span class="hover:text-white cursor-pointer py-1">27</span>
+<!-- Active Selected Day 28 with glow circle -->
+<span class="flex items-center justify-center">
+<span class="w-6 h-6 rounded-full bg-accent-purple text-white font-bold flex items-center justify-center shadow-glow-purple scale-110">28</span>
+</span>
+<span class="hover:text-white cursor-pointer py-1">29</span>
+<span class="hover:text-white cursor-pointer py-1">30</span>
+<span class="hover:text-white cursor-pointer py-1">31</span>
+<span class="text-slate-600">1</span>
+</div>
+</div>
+<!-- 2. Today's Schedule Card (5 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-5 flex flex-col justify-between shadow-lg" data-purpose="schedule-widget">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-sm font-bold tracking-wide text-white">Today's Schedule</h2>
+<span class="text-xs px-2.5 py-0.5 rounded-full bg-appDark-700/80 text-accent-indigo border border-appDark-border font-medium">4 Events</span>
+</div>
+<div class="space-y-2.5">
+<!-- Event Item 1 -->
+<div class="flex items-center justify-between p-2.5 rounded-2xl bg-appDark-850/60 border border-appDark-border/60 hover:border-slate-700 transition">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-accent-purple shadow-sm"></span>
+<div>
+<h4 class="text-xs font-semibold text-white leading-tight">Physics Lecture</h4>
+<p class="text-[11px] text-slate-400">Quantum Mechanics</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[11px] font-mono text-slate-300">09:00 - 10:30</span>
+</div>
+</div>
+<!-- Event Item 2 -->
+<div class="flex items-center justify-between p-2.5 rounded-2xl bg-appDark-850/60 border border-appDark-border/60 hover:border-slate-700 transition">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-blue-500 shadow-sm"></span>
+<div>
+<h4 class="text-xs font-semibold text-white leading-tight">Project Meeting</h4>
+<p class="text-[11px] text-slate-400">Team Sync</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[11px] font-mono text-slate-300">11:00 - 12:00</span>
+</div>
+</div>
+<!-- Event Item 3 -->
+<div class="flex items-center justify-between p-2.5 rounded-2xl bg-appDark-850/60 border border-appDark-border/60 hover:border-slate-700 transition">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-amber-400 shadow-sm"></span>
+<div>
+<h4 class="text-xs font-semibold text-white leading-tight">Lunch Break</h4>
+<p class="text-[11px] text-slate-400">Take a short break</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[11px] font-mono text-slate-300">13:00 - 14:00</span>
+</div>
+</div>
+<!-- Event Item 4 -->
+<div class="flex items-center justify-between p-2.5 rounded-2xl bg-appDark-850/60 border border-appDark-border/60 hover:border-slate-700 transition">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm"></span>
+<div>
+<h4 class="text-xs font-semibold text-white leading-tight">Study Session</h4>
+<p class="text-[11px] text-slate-400">Data Structures</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[11px] font-mono text-slate-300">15:00 - 17:00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 3. Weather Widget (3 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-3 flex flex-col justify-between items-center text-center shadow-lg relative overflow-hidden" data-purpose="weather-widget">
+<!-- Weather Graphic & Big Temperature -->
+<div class="w-full flex flex-col items-center">
+<!-- Stylized Sun & Cloud Illustration Icon -->
+<div class="relative w-16 h-14 mt-1 mb-2">
+<div class="absolute top-0 right-3 w-8 h-8 rounded-full bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,0.6)]"></div>
+<div class="absolute bottom-0 left-1 w-12 h-8 bg-slate-200/90 rounded-2xl backdrop-blur-sm shadow-md flex items-center justify-center">
+<div class="w-6 h-6 bg-slate-300/80 rounded-full -mt-3 -ml-2"></div>
+</div>
+</div>
+<div class="text-4xl font-extrabold text-white tracking-tight mt-1">24°</div>
+<p class="text-xs font-semibold text-slate-300 mt-0.5">Partly Cloudy</p>
+<p class="text-[11px] text-slate-400 font-medium">↑ 28°   ↓ 18°</p>
+</div>
+<!-- 3-Day Forecast Sub-Row -->
+<div class="w-full grid grid-cols-3 pt-4 mt-2 border-t border-appDark-border/70 text-center">
+<div>
+<span class="text-[10px] uppercase font-bold text-slate-400 block">Wed</span>
+<span class="text-xs text-amber-300 block my-1">☀️</span>
+<span class="text-xs font-semibold text-slate-200">27°</span>
+</div>
+<div>
+<span class="text-[10px] uppercase font-bold text-slate-400 block">Thu</span>
+<span class="text-xs text-slate-300 block my-1">⛅</span>
+<span class="text-xs font-semibold text-slate-200">25°</span>
+</div>
+<div>
+<span class="text-[10px] uppercase font-bold text-slate-400 block">Fri</span>
+<span class="text-xs text-cyan-300 block my-1">🌧️</span>
+<span class="text-xs font-semibold text-slate-200">26°</span>
+</div>
+</div>
+</div>
+</section>
+<!-- END: TopWidgetsGrid -->
+<!-- BEGIN: MiddleRowWidgets -->
+<!-- My Tasks List & Pomodoro Focus Timer -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-5" data-purpose="middle-widgets-row">
+<!-- My Tasks Checklist Card (7 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-7 flex flex-col justify-between shadow-lg" data-purpose="tasks-widget">
+<!-- Tasks Header & Controls -->
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+<h2 class="text-base font-bold text-white">My Tasks</h2>
+<div class="flex items-center gap-2">
+<!-- Filter Pill Tabs -->
+<div class="flex items-center bg-appDark-850 p-1 rounded-xl border border-appDark-border text-xs font-medium">
+<button class="px-2.5 py-1 rounded-lg bg-accent-purple text-white shadow-sm font-semibold">All</button>
+<button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">Today</button>
+<button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">Upcoming</button>
+<button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">Completed</button>
+</div>
+<!-- Add Task Button -->
+<button class="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-accent-purple/90 hover:bg-accent-purple text-white shadow-glow-purple transition">
+<span>+</span> Add Task
+              </button>
+</div>
+</div>
+<!-- Tasks List -->
+<div class="space-y-2.5">
+<!-- Task 1 (Completed) -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+<div class="flex items-center gap-3">
+<input checked="" class="w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+<span class="text-xs font-medium text-slate-400 line-through">Finish Math Assignment</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-medium text-slate-400">Today</span>
+<button aria-label="Favorite" class="text-accent-purple hover:scale-110 transition">★</button>
+</div>
+</div>
+<!-- Task 2 -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+<div class="flex items-center gap-3">
+<input class="w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+<span class="text-xs font-medium text-slate-200 group-hover:text-white">Review Physics Notes</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-medium text-slate-400">Today</span>
+<button aria-label="Favorite" class="text-slate-600 hover:text-amber-400 transition">☆</button>
+</div>
+</div>
+<!-- Task 3 -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+<div class="flex items-center gap-3">
+<input class="w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+<span class="text-xs font-medium text-slate-200 group-hover:text-white">Prepare for Chemistry Lab</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-medium text-slate-400">Tomorrow</span>
+<button aria-label="Favorite" class="text-slate-600 hover:text-amber-400 transition">☆</button>
+</div>
+</div>
+<!-- Task 4 -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+<div class="flex items-center gap-3">
+<input class="w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+<span class="text-xs font-medium text-slate-200 group-hover:text-white">Read 30 pages of Book</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-medium text-slate-400">May 30</span>
+<button aria-label="Favorite" class="text-slate-600 hover:text-amber-400 transition">☆</button>
+</div>
+</div>
+<!-- Task 5 -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/70 border border-appDark-border hover:border-slate-700 transition group">
+<div class="flex items-center gap-3">
+<input class="w-4 h-4 rounded-full border-slate-600 text-accent-purple focus:ring-accent-purple focus:ring-offset-appDark-850 cursor-pointer" type="checkbox"/>
+<span class="text-xs font-medium text-slate-200 group-hover:text-white">Workout</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-medium text-slate-400">May 30</span>
+<button aria-label="Favorite" class="text-slate-600 hover:text-amber-400 transition">☆</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Focus Timer Card (Pomodoro Ring) (5 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-5 flex flex-col justify-between items-center text-center shadow-lg relative" data-purpose="focus-timer-widget">
+<!-- Widget Title -->
+<div class="w-full flex items-center justify-between mb-2">
+<h2 class="text-sm font-bold text-white tracking-wide">Focus Timer</h2>
+<button aria-label="Timer settings" class="text-slate-400 hover:text-white transition">
+<svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+</button>
+</div>
+<!-- Circular Progress Pomodoro -->
+<div class="relative w-48 h-48 my-2 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 160 160">
+<!-- Background Ring -->
+<circle cx="80" cy="80" fill="transparent" r="70" stroke="#171f2f" stroke-width="8"></circle>
+<!-- Glow Progress Ring -->
+<circle class="transition-all duration-700 filter drop-shadow-[0_0_8px_rgba(121,82,245,0.7)]" cx="80" cy="80" fill="transparent" r="70" stroke="url(#timerGradient)" stroke-dasharray="440" stroke-dashoffset="110" stroke-linecap="round" stroke-width="8"></circle>
+<!-- Gradient Definition -->
+<defs>
+<lineargradient id="timerGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#8b5cf6"></stop>
+<stop offset="50%" stop-color="#6366f1"></stop>
+<stop offset="100%" stop-color="#ec4899"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Center Countdown Display -->
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="text-3xl font-extrabold text-white tracking-tight font-mono" id="timer-display">25:00</span>
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Focus</span>
+</div>
+</div>
+<!-- Controls: Play/Pause & Reset -->
+<div class="flex items-center gap-4 mt-2">
+<button aria-label="Play Timer" class="w-12 h-12 rounded-full bg-gradient-to-tr from-accent-purple to-indigo-600 text-white flex items-center justify-center shadow-glow-purple hover:scale-105 active:scale-95 transition-all" id="timer-toggle-btn" type="button">
+<svg class="w-5 h-5 fill-current ml-0.5" viewbox="0 0 24 24">
+<path d="M8 5v14l11-7z"></path>
+</svg>
+</button>
+<button aria-label="Reset Timer" class="p-2.5 rounded-full text-slate-400 hover:text-white hover:bg-appDark-700 transition" id="timer-reset-btn" type="button">
+<svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
+<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+<path d="M3 3v5h5"></path>
+</svg>
+</button>
+</div>
+</div>
+</section>
+<!-- END: MiddleRowWidgets -->
+<!-- BEGIN: LowerRowWidgets -->
+<!-- Upcoming Deadlines & Quick Notes -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-5" data-purpose="lower-widgets-row">
+<!-- Upcoming Deadlines (6 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-6 flex flex-col justify-between shadow-lg" data-purpose="deadlines-widget">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-sm font-bold text-white tracking-wide">Upcoming Deadlines</h2>
+<button class="text-xs font-semibold text-accent-indigo hover:text-accent-purple transition">View All</button>
+</div>
+<div class="space-y-3">
+<!-- Deadline 1 -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/60 border border-appDark-border">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-purple-500/20 text-accent-purple flex items-center justify-center">
+<svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-white">Data Structures Assignment</h4>
+<p class="text-[11px] text-slate-400">Due in 2 days • May 30, 2024</p>
+</div>
+</div>
+<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">High</span>
+</div>
+<!-- Deadline 2 -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/60 border border-appDark-border">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+<svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"></path></svg>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-white">Chemistry Lab Report</h4>
+<p class="text-[11px] text-slate-400">Due in 4 days • June 1, 2024</p>
+</div>
+</div>
+<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Medium</span>
+</div>
+<!-- Deadline 3 -->
+<div class="flex items-center justify-between p-3 rounded-2xl bg-appDark-850/60 border border-appDark-border">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+<svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+</div>
+<div>
+<h4 class="text-xs font-semibold text-white">Physics Quiz</h4>
+<p class="text-[11px] text-slate-400">Due in 7 days • June 4, 2024</p>
+</div>
+</div>
+<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Medium</span>
+</div>
+</div>
+</div>
+<!-- Quick Notes Card (6 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-6 flex flex-col justify-between shadow-lg" data-purpose="notes-widget">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-sm font-bold text-white tracking-wide">Quick Notes</h2>
+<button aria-label="Add Note" class="text-xs p-1 rounded-lg text-slate-400 hover:text-white hover:bg-appDark-700 transition">
+<svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
+</button>
+</div>
+<!-- Notes Scratchpad Content -->
+<ul class="space-y-2 text-xs text-slate-300 font-normal">
+<li class="flex items-start gap-2">
+<span class="text-accent-purple font-bold">•</span>
+<span>Study differential equations</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="text-accent-purple font-bold">•</span>
+<span>Revise thermodynamics</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="text-accent-purple font-bold">•</span>
+<span>Work on project prototype</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="text-accent-purple font-bold">•</span>
+<span>Call library for book renewal</span>
+</li>
+</ul>
+<!-- Motivational Footer Note -->
+<div class="mt-4 pt-3 border-t border-appDark-border/60 text-center">
+<p class="text-xs font-medium text-slate-400">
+              Keep going! You're doing great. 💜
+            </p>
+</div>
+</div>
+</section>
+<!-- END: LowerRowWidgets -->
+<!-- BEGIN: BottomToolsRow -->
+<!-- Study Music Player & Habit Tracker -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6" data-purpose="bottom-utilities-row">
+<!-- Music Player: Lo-Fi Beats (5 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-5 flex flex-col justify-between shadow-lg" data-purpose="music-player-widget">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-accent-purple to-indigo-700 flex items-center justify-center text-white shadow-glow-purple">
+<svg class="w-6 h-6 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
+<path d="M9 18V5l12-2v13"></path>
+<circle cx="6" cy="18" r="3"></circle>
+<circle cx="18" cy="16" r="3"></circle>
+</svg>
+</div>
+<div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-accent-indigo">Study Playlist</span>
+<h3 class="text-sm font-bold text-white leading-tight">Lo-Fi Beats</h3>
+<p class="text-[11px] text-slate-400">Chill &amp; Focus</p>
+</div>
+</div>
+<!-- Audio Controls & Visualizer -->
+<div class="flex items-center justify-between mt-4 pt-3 border-t border-appDark-border/60">
+<!-- Playback Controls -->
+<div class="flex items-center gap-3">
+<button aria-label="Previous track" class="text-slate-400 hover:text-white transition">
+<svg class="w-4 h-4 fill-current" viewbox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path></svg>
+</button>
+<button aria-label="Play/Pause track" class="w-9 h-9 rounded-full bg-accent-purple text-white flex items-center justify-center hover:scale-105 transition shadow-sm">
+<svg class="w-4 h-4 fill-current ml-0.5" viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</button>
+<button aria-label="Next track" class="text-slate-400 hover:text-white transition">
+<svg class="w-4 h-4 fill-current" viewbox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
+</button>
+</div>
+<!-- Waveform Equalizer Animation -->
+<div class="flex items-end gap-1 h-7 px-2">
+<span class="w-1 bg-accent-purple rounded-full eq-bar"></span>
+<span class="w-1 bg-indigo-500 rounded-full eq-bar"></span>
+<span class="w-1 bg-violet-400 rounded-full eq-bar"></span>
+<span class="w-1 bg-accent-purple rounded-full eq-bar"></span>
+<span class="w-1 bg-indigo-400 rounded-full eq-bar"></span>
+<span class="w-1 bg-purple-300 rounded-full eq-bar"></span>
+<span class="w-1 bg-indigo-600 rounded-full eq-bar"></span>
+<span class="w-1 bg-accent-purple rounded-full eq-bar"></span>
+</div>
+</div>
+</div>
+<!-- Habit Tracker (7 Cols) -->
+<div class="glass-card rounded-3xl p-5 lg:col-span-7 flex flex-col justify-between shadow-lg overflow-x-auto" data-purpose="habit-tracker-widget">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-sm font-bold text-white tracking-wide">Habit Tracker</h2>
+<div class="flex items-center gap-1.5 text-xs text-slate-400">
+<span class="font-medium text-slate-300">This Week</span>
+<svg class="w-3.5 h-3.5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+</div>
+</div>
+<!-- Habit Table Matrix -->
+<div class="w-full min-w-[340px]">
+<!-- Day labels header -->
+<div class="grid grid-cols-12 text-center text-[11px] font-semibold text-slate-500 pb-2 border-b border-appDark-border/60">
+<div class="col-span-5 text-left pl-1">Habit</div>
+<div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+</div>
+<div class="divide-y divide-appDark-border/40 text-xs">
+<!-- Habit 1: Study -->
+<div class="grid grid-cols-12 items-center py-2.5 text-center">
+<div class="col-span-5 flex items-center gap-2 text-left pl-1 font-medium text-slate-200">
+<span class="w-5 h-5 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px]">📖</span>
+<span>Study</span>
+</div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+</div>
+<!-- Habit 2: Exercise -->
+<div class="grid grid-cols-12 items-center py-2.5 text-center">
+<div class="col-span-5 flex items-center gap-2 text-left pl-1 font-medium text-slate-200">
+<span class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px]">⚡</span>
+<span>Exercise</span>
+</div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+</div>
+<!-- Habit 3: Meditate -->
+<div class="grid grid-cols-12 items-center py-2.5 text-center">
+<div class="col-span-5 flex items-center gap-2 text-left pl-1 font-medium text-slate-200">
+<span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">🧘</span>
+<span>Meditate</span>
+</div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-4 h-4 rounded-full bg-accent-purple inline-flex items-center justify-center text-[9px] text-white">✓</span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+</div>
+<!-- Habit 4: Read -->
+<div class="grid grid-cols-12 items-center py-2.5 text-center">
+<div class="col-span-5 flex items-center gap-2 text-left pl-1 font-medium text-slate-200">
+<span class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-[10px]">📚</span>
+<span>Read</span>
+</div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+<div><span class="w-3.5 h-3.5 rounded-full border border-slate-700 inline-block"></span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: BottomToolsRow -->
+</main>
+</div>
+<!-- BEGIN: FloatingAppDock -->
+<!-- macOS inspired bottom floating dock -->
+<footer class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50" data-purpose="floating-macos-dock">
+<div class="flex items-center gap-3 px-4 py-2.5 rounded-3xl bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
+<!-- Dock App 1: Apps Grid -->
+<button aria-label="Apps Grid" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"></path></svg>
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Apps</span>
+</button>
+<!-- Dock App 2: Files Folder -->
+<button aria-label="Files" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-500 text-white hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path></svg>
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Files</span>
+</button>
+<!-- Dock App 3: Calendar Date Badge (28) -->
+<button aria-label="Calendar Dock" class="group relative w-10 h-10 rounded-2xl bg-slate-100 text-slate-900 flex flex-col items-center justify-center overflow-hidden hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+<span class="w-full bg-rose-500 text-white text-[8px] font-extrabold uppercase leading-none py-0.5 text-center">MAY</span>
+<span class="text-sm font-extrabold leading-none mt-0.5">28</span>
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Calendar</span>
+</button>
+<!-- Dock App 4: Tasks List -->
+<button aria-label="Tasks" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-violet-500 to-purple-600 text-white hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+<svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Reminders</span>
+</button>
+<!-- Dock App 5: Clock -->
+<button aria-label="Clock" class="group relative p-2.5 rounded-2xl bg-slate-800 text-slate-100 border border-slate-700 hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+<svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Clock</span>
+</button>
+<!-- Dock App 6: Notes Pad -->
+<button aria-label="Notes" class="group relative p-2.5 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 text-slate-900 hover:scale-125 hover:-translate-y-2 transition-all duration-200 shadow-md">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Notes</span>
+</button>
+<span class="w-[1px] h-6 bg-slate-700/80 mx-0.5"></span>
+<!-- Dock App 7: Trash Bin -->
+<button aria-label="Trash" class="group relative p-2.5 rounded-2xl text-slate-400 hover:text-rose-400 hover:scale-125 hover:-translate-y-2 transition-all duration-200">
+<svg class="w-5 h-5 stroke-current stroke-2 fill-none" viewbox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-semibold text-white pointer-events-none transition-opacity">Trash</span>
+</button>
+</div>
+</footer>
+<!-- END: FloatingAppDock -->
+<!-- JavaScript for Clock and Pomodoro Interactivity -->
+<script data-purpose="dashboard-timer-interactivity">
+    // Dynamic Realtime Clock in Header
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const clockEl = document.getElementById('header-clock');
+      if (clockEl) {
+        hours = hours % 12 || 12; // 12-hour format
+        clockEl.textContent = `${String(hours).padStart(2, '0')}:${minutes}`;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Pomodoro Timer Logic
+    let pomodoroTime = 25 * 60;
+    let timerRunning = false;
+    let timerInterval = null;
+
+    const timerDisplay = document.getElementById('timer-display');
+    const toggleBtn = document.getElementById('timer-toggle-btn');
+    const resetBtn = document.getElementById('timer-reset-btn');
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    if (toggleBtn && resetBtn && timerDisplay) {
+      toggleBtn.addEventListener('click', () => {
+        if (timerRunning) {
+          clearInterval(timerInterval);
+          timerRunning = false;
+          toggleBtn.innerHTML = '<svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+        } else {
+          timerRunning = true;
+          toggleBtn.innerHTML = '<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+          timerInterval = setInterval(() => {
+            if (pomodoroTime > 0) {
+              pomodoroTime--;
+              timerDisplay.textContent = formatTime(pomodoroTime);
+            } else {
+              clearInterval(timerInterval);
+              timerRunning = false;
+              alert('Pomodoro focus session completed!');
+            }
+          }, 1000);
+        }
+      });
+
+      resetBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        pomodoroTime = 25 * 60;
+        timerDisplay.textContent = '25:00';
+        toggleBtn.innerHTML = '<svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+      });
+    }
+  </script>
+</body></html>
